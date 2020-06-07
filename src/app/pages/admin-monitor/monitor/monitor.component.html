@@ -1,0 +1,563 @@
+<div class="animated fadeIn p-3 content-body">
+
+    <mat-tab-group mat-stretch-tabs>
+        <mat-tab label="Pedidos"> 
+            
+            <div class="p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Pedidos {{ countPedidos }}</h6>
+                    </div>
+                    <div>
+                        <app-com-date-filter (RangeSelected)="dateRangeSelected($event)"></app-com-date-filter>
+                    </div>
+                </div>
+
+                <hr>
+
+
+                <table *ngIf="dataPedidos" class="table-model-1 w-100" mat-table [dataSource]="dataPedidos">      
+    
+                    <ng-container matColumnDef="num_pedido">
+                        <th mat-header-cell *matHeaderCellDef>Pedido</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p class="fw-600">{{ element.idpedido}}</p>                            
+                            <p>{{ element.fecha}} {{ element.hora}}</p>
+                            <span class="fw-600 badge" [ngClass]="{'badge-secondary': element.pwa_estado === 'P', 'badge-success': element.pwa_estado != 'P'}">
+                                <span *ngIf="element.pwa_estado !== 'P'">Visto</span>
+                                <span *ngIf="element.pwa_estado === 'P'">No visto</span>
+                            </span>
+                        </td>
+                    </ng-container>
+    
+                    <ng-container matColumnDef="comercio">
+                        <th mat-header-cell *matHeaderCellDef>Comercio</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p>{{ element.nom_sede}}</p>                                          
+                            <p>{{ element.dir_sede}}</p>
+                            <p *ngIf="element.json_datos_delivery.p_header.isCliente === 1" class="badge badge-success">
+                                APP
+                            </p>                                                 
+                        </td>
+                    </ng-container>
+    
+                    <ng-container matColumnDef="ciudad">
+                        <th mat-header-cell *matHeaderCellDef>Ciudad</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p>{{ element.ciudad_sede}}</p>   
+                            <ng-container *ngIf="element.pwa_delivery_servicio_propio === 1; else elseTemplate">
+                               <span class="badge badge-info">Propio reparto</span>
+                            </ng-container>
+                            <ng-template #elseTemplate>
+                                <span class="badge badge-success">red repartidores</span>
+                            </ng-template>
+                                       
+                        </td>
+                    </ng-container>
+    
+                    <ng-container matColumnDef="cliente">
+                        <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p>{{ element.nom_cliente}}</p>              
+                            <p>{{ element.json_datos_delivery.p_header.arrDatosDelivery.direccion}}</p>
+                            <p>{{ element.json_datos_delivery.p_header.arrDatosDelivery.telefono}}</p>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="repartidor">
+                        <th mat-header-cell *matHeaderCellDef >Repartidor</th>
+                        <td mat-cell *matCellDef="let element">
+                            <span class="fw-600 text-success">{{ element.nom_repartidor }}</span>
+                            <p>{{ element.telefono_repartidor}}</p>
+                        </td>
+                    </ng-container>
+
+                    
+                    <ng-container matColumnDef="importe">
+                        <th mat-header-cell *matHeaderCellDef class="text-right">Imp. Total</th>
+                        <td mat-cell *matCellDef="let element" align="right">
+                            <p class="fw-600">{{ element.total_r }}</p>
+                            <p class="fw-600 badge" [ngClass]="{'badge-primary': element.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 3, 'badge-info': element.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 2, 'badge-secondary': element.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 1}">
+                                {{element.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.descripcion | titlecase }} 
+                            </p> 
+                        </td>
+                    </ng-container>
+                    
+                    <ng-container matColumnDef="min_transcurridos">
+                        <th mat-header-cell *matHeaderCellDef class="text-right">M. Transcurridos</th>
+                        <td mat-cell *matCellDef="let element" align="right">
+                            <span class="fw-600" *ngIf="!element.idrepartidor">{{ element.min_transcurridos }}</span>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="min_avisa">
+                        <th mat-header-cell *matHeaderCellDef class="text-right">M. Avisa</th>
+                        <td mat-cell *matCellDef="let element" align="right">
+                            <span class="fw-600" *ngIf="!element.idrepartidor">{{ element.pwa_min_despacho }}</span>
+                            <div *ngIf="element.idrepartidor">
+                                <ng-container *ngIf="element.pwa_delivery_status === '4'; else elseTemplate">
+                                    <span class="fw-600 text-success">Entregado</span>
+                                </ng-container>
+                                <ng-template #elseTemplate>
+                                    <span class="fw-600">En proceso</span>
+                                </ng-template>
+                                
+                            </div>
+                            <br>
+                            <button class="p-1" (click)="verPedido(element)">Ver pedido</button>
+                        </td>
+                    </ng-container>
+    
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsPedidos"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumnsPedidos;"></tr>
+                </table>
+                <mat-paginator [pageSizeOptions]="[20, 40, 60]" [hidePageSize]="true" showFirstLastButtons></mat-paginator>
+
+            </div>
+
+        </mat-tab>
+        
+
+
+
+
+
+
+        <!-- repartidores -->
+        <mat-tab label="Repartidores"> 
+            <div class="p-3">                
+                <h5>Repartidores</h5>
+                <button class="btn btn-info" (click)="loadRepartidores()">Actualizar</button>
+                <hr>
+
+                <div *ngIf="listPedidosPendientes">
+                    <h6>Pedidos pendientes  ({{  listPedidosPendientes.length }})</h6>
+                    <!-- pedidos pendientes por atender -->
+                    <div class="d-flex" style="height: 100px; background: #eceff1; border-radius: 5px;">
+                        <div *ngFor="let element of listPedidosPendientes" class="fs-12 border p-3 text-center m-2 bg-white" style="border-radius: 5px;">
+                            <p>{{ element.sede}}</p>   
+                            <p>pedido: {{ element.pedido }}</p>
+                            <p class="fw-600 text-secondary" [ngClass]="{'text-danger': element.tiempo > 20}">{{ element.tiempo }} Min</p>
+                            <p class="fs-11 badge badge-info" *ngIf="element.solicito_repartidor == 1">Solicita Repartidor</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <hr>
+                        
+
+                <table *ngIf="dataRepartidores" class="table-model-1 w-100" mat-table [dataSource]="dataRepartidores">      
+    
+                    <ng-container matColumnDef="repartidor">
+                        <th mat-header-cell *matHeaderCellDef>Repartidor</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p class="fw-600">{{ element.nombre}}  {{ element.apellido}}</p>                            
+                            <span>{{ element.telefono}}</span>
+                            <span> | {{ element.ciudad}}</span><br>
+                            
+                            <ng-container *ngIf="element.idsede_suscrito; else elseTemplate">
+                                <p class="badge badge-secondary"> Propio</p>
+                            </ng-container>
+                            <ng-template #elseTemplate>
+                                <p class="badge badge-info"> Red Rerpartidor </p>                                     
+                            </ng-template>                            
+                        </td>
+                    </ng-container>
+
+                    <!-- pedido en marcha -->
+                    <ng-container matColumnDef="pedido_a">
+                        <th mat-header-cell *matHeaderCellDef class="text-center">P. Aceptado</th>
+                        <td mat-cell *matCellDef="let element">
+                            <div *ngIf="element.r_idpedido" class="text-center">
+                                <span>{{ element.nom_sede}}</span>              
+                                <!-- <span> | {{ element.ciudad_sede}}</span>               -->
+                                <p class="fw-600 text-success">{{ element.r_idpedido }}</p>   
+                                <p class="fw-600 text-secondary" [ngClass]="{'text-danger': element.t_transcurrido > 20}">{{ element.t_transcurrido }} Min</p>           
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- pedido por aceptar -->
+                    <ng-container matColumnDef="por_aceptar">
+                        <th mat-header-cell *matHeaderCellDef class="text-center">Por aceptar</th>
+                        <td mat-cell *matCellDef="let element">
+                            <div *ngIf="element.flag_paso_pedido > 0" class="text-center">
+                                <span>{{ element.nom_sede}}</span>              
+                                <!-- <span> | {{ element.ciudad_sede}}</span> -->
+                                <p class="fw-600 text-danger">{{ element.flag_paso_pedido }}</p>
+                                <p class="fw-600 text-secondary" [ngClass]="{'text-danger': element.t_transcurrido > 20}">{{ element.t_transcurrido }} Min</p>           
+                            </div>
+                        </td>
+                    </ng-container>
+    
+                    <ng-container matColumnDef="calificacion">
+                        <th mat-header-cell *matHeaderCellDef>Calificacion</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p>{{ element.calificacion}}</p>                                                                                              
+                        </td>
+                    </ng-container>                    
+    
+                    <ng-container matColumnDef="efectivo_mano">
+                        <th mat-header-cell *matHeaderCellDef class="text-right">Efectivo</th>
+                        <td mat-cell *matCellDef="let element" align="right">
+                            <span class="fw-600">{{ element.efectivo_mano | number: '.2' }}</span>
+                        </td>
+                    </ng-container>
+                    
+                    <ng-container matColumnDef="atendidos">
+                        <th mat-header-cell *matHeaderCellDef class="text-right">P. Ätendidos</th>
+                        <td mat-cell *matCellDef="let element" align="right">
+                            <span>{{ element.pedidos_atendidos }}</span>
+                        </td>
+                    </ng-container>
+                    
+                    <ng-container matColumnDef="reasignado">
+                        <th mat-header-cell *matHeaderCellDef class="text-right">P. Reasignados</th>
+                        <td mat-cell *matCellDef="let element" align="right">
+                            {{ element.pedidos_reasignados }}
+                            <button class="ml-3 p-1" (click)="resetContadorRepartidor(element)">Reset</button>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="online">
+                        <th mat-header-cell *matHeaderCellDef class="text-right">Online</th>
+                        <td mat-cell *matCellDef="let element" align="right">
+                            <ng-container *ngIf="element.online === 1; else elseTemplate">
+                                <span class="fw-600 text-success">Si</span>
+                            </ng-container>
+                            <ng-template #elseTemplate>
+                                <span class="text-danger">No</span>
+                            </ng-template>
+                            
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ocupado">
+                        <th mat-header-cell *matHeaderCellDef class="text-right">Ocupado</th>
+                        <td mat-cell *matCellDef="let element" align="right">
+                            <ng-container *ngIf="element.ocupado === 1; else elseTemplate">
+                                <span class="fw-600 text-success pr-2">Si</span>
+                            </ng-container>
+                            <ng-template #elseTemplate>
+                                <span>No</span>
+                            </ng-template>
+                            <button class="p-1" (click)="resetLiberarRepartidor(element)">Liberar</button>
+                            
+                        </td>
+                    </ng-container>
+    
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsRepartidor"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumnsRepartidor;"></tr>
+                </table>
+                <mat-paginator [pageSizeOptions]="[10, 20, 30]" [hidePageSize]="true" showFirstLastButtons #paginatorRepartidor></mat-paginator>
+            </div>
+        </mat-tab>  
+        
+        
+
+
+        <!-- clientes -->
+        <mat-tab label="Clientes"> 
+            <div class="p-3">
+                <h6>Clientes {{ countClientes }}</h6>
+                <button  class="btn btn-info"  (click)="loadClientes()">Actualizar</button>
+
+                <table *ngIf="dataClientes" class="table-model-1 w-100" mat-table [dataSource]="dataClientes">      
+    
+                    <ng-container matColumnDef="idcliente">
+                        <th mat-header-cell *matHeaderCellDef>id</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p class="fw-600">{{ element.idcliente}}</p>                                                        
+                        </td>
+                    </ng-container>
+    
+                    <ng-container matColumnDef="cliente">
+                        <th mat-header-cell *matHeaderCellDef>Nombres</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p>{{ element.nombres}}</p>                                                                                              
+                        </td>
+                    </ng-container>
+    
+                    <ng-container matColumnDef="pwa_id">
+                        <th mat-header-cell *matHeaderCellDef>pwa_id</th>
+                        <td mat-cell *matCellDef="let element">
+                            <p>{{ element.pwa_id}}</p>              
+                        </td>
+                    </ng-container>
+    
+                    <ng-container matColumnDef="f_registro">
+                        <th mat-header-cell *matHeaderCellDef>f_registro</th>
+                        <td mat-cell *matCellDef="let element">
+                            <span class="fw-600">{{ element.f_registro }}</span>
+                        </td>
+                    </ng-container>
+                    
+                    <ng-container matColumnDef="telefono">
+                        <th mat-header-cell *matHeaderCellDef>telefono</th>
+                        <td mat-cell *matCellDef="let element">
+                            <span>{{ element.telefono }}</span>
+                        </td>
+                    </ng-container>
+                    
+                    <ng-container matColumnDef="calificacion">
+                        <th mat-header-cell *matHeaderCellDef>calificacion</th>
+                        <td mat-cell *matCellDef="let element">
+                            {{ element.calificacion }}
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsCliente"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumnsCliente;"></tr>
+                </table>
+                <mat-paginator [pageSizeOptions]="[10, 20, 30]" [hidePageSize]="true" showFirstLastButtons #paginatorCliente></mat-paginator>
+            </div>
+        </mat-tab>
+
+
+
+
+
+        <mat-tab label="Pagos con Tarjeta"> 
+            <div class="p-3" *ngIf="dataPedidosAbona">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Pendientes de pagar ({{ countPedidosAbonar }})</h6>
+                        <p class="fs-15">Pendiente Abonar S/.{{sumTotalAbona |  number : '.2'}}</p>
+                    </div>
+                    <div class="text-right">
+                        <button  class="btn btn-warning mr-2"  (click)="exportPdf()"> <i class="fa fa-download"></i> PDF</button>
+                        <button  class="btn btn-info"  (click)="verPedidoPagosVisa()">Actualizar</button>
+                    </div>                
+                </div>                                
+
+                <hr>
+
+                <div id="element-to-print">
+                
+                    <!-- filtros -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+
+                            <mat-form-field>
+                                <mat-label>Por</mat-label>
+                                <mat-select (selectionChange)="filtroPor($event.value)">
+                                    <mat-option value="0"> COMERCIOS </mat-option>
+                                    <mat-option value="1"> REPARTIDORES </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+    
+                            <ng-container *ngIf="dataFiltroAbonar.por === '0'; else elseTemplate">
+                                <!-- comercio -->
+                                <mat-form-field>
+                                    <mat-label>Comercio</mat-label>
+                                    <mat-select (selectionChange)="filtroComercio($event)">
+                                        <mat-option *ngFor="let item of listComercioPagar" [value]="item">
+                                            {{item.nombre}}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </ng-container>
+    
+                            <ng-template #elseTemplate>
+                                
+                                <!-- repartidor -->
+                                <mat-form-field>
+                                    <mat-label>Repartidor</mat-label>
+                                    <mat-select (selectionChange)="filtroRepartidor($event)">
+                                        <mat-option *ngFor="let item of listRepartidoresPagar" [value]="item">
+                                            {{item.nombre}}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+    
+                            </ng-template>
+                            
+                        
+    
+                            <!-- abono -->
+                            <mat-form-field>
+                                <mat-label>Estado</mat-label>
+                                <mat-select (selectionChange)="filtroAbonado($event.value)">
+                                    <mat-option value="-1"> TODOS </mat-option>
+                                    <mat-option value="1"> ABONADO </mat-option>
+                                    <mat-option value="0"> POR ABONAR </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- rango fecha -->
+                        <div>
+                            <app-com-date-filter (RangeSelected)="dateRangeAbonoSelected($event)"></app-com-date-filter>
+                        </div>
+                    </div>
+
+                    <hr>
+                    
+                    <table *ngIf="dataPedidos" class="table-model-1 w-100" mat-table [dataSource]="dataPedidosAbona">      
+        
+                        <ng-container matColumnDef="num_pedido">
+                            <th mat-header-cell *matHeaderCellDef>Pedido</th>
+                            <td mat-cell *matCellDef="let element">
+                                <a (click)="verPedido(element)"> {{ element.idpedido}} </a>
+                                <!-- <button class="p-1" (click)="verPedido(element)"><p class="fw-600">{{ element.idpedido}}</p></button>                             -->
+                                <p>{{ element.fecha}} {{ element.hora}}</p>                            
+                            </td>
+                            <td mat-footer-cell *matFooterCellDef> Totales </td>
+                        </ng-container>
+        
+                        <ng-container matColumnDef="comercio">
+                            <th mat-header-cell *matHeaderCellDef>Comercio</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.nom_sede}}</p>                                          
+                                <p>{{ element.dir_sede}}</p>
+                                <p *ngIf="element.json_datos_delivery.p_header.isCliente === 1" class="badge badge-success">
+                                    APP
+                                </p>                                                 
+                            </td>
+                            <td mat-footer-cell *matFooterCellDef> </td>
+                        </ng-container>
+        
+                        <ng-container matColumnDef="ciudad">
+                            <th mat-header-cell *matHeaderCellDef>Ciudad</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.ciudad_sede}}</p>   
+                                <ng-container *ngIf="element.pwa_delivery_servicio_propio === 1; else elseTemplate">
+                                <span class="badge badge-info">Propio reparto</span>
+                                </ng-container>
+                                <ng-template #elseTemplate>
+                                    <span class="badge badge-success">red repartidores</span>
+                                </ng-template>
+                                        
+                            </td>
+                            <td mat-footer-cell *matFooterCellDef> </td>
+                        </ng-container>
+        
+                        <ng-container matColumnDef="cliente">
+                            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.nom_cliente}}</p>              
+                                <!-- <p>{{ element.json_datos_delivery.p_header.arrDatosDelivery.direccion}}</p>
+                                <p>{{ element.json_datos_delivery.p_header.arrDatosDelivery.telefono}}</p> -->
+                            </td>
+                            <td mat-footer-cell *matFooterCellDef> </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="repartidor">
+                            <th mat-header-cell *matHeaderCellDef >Repartidor</th>
+                            <td mat-cell *matCellDef="let element">
+                                <span class="fw-600 text-success">{{ element.nom_repartidor }}</span>
+                                <p>{{ element.telefono_repartidor}}</p>
+                            </td>
+                            <td mat-footer-cell *matFooterCellDef> </td>
+                        </ng-container>
+
+                        
+                        <ng-container matColumnDef="importe">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">Imp. Total</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <p class="fw-600">{{ element.total_r }}</p>
+                                <p class="fw-600 badge" [ngClass]="{'badge-primary': element.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 3, 'badge-info': element.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 2, 'badge-secondary': element.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 1}">
+                                    {{element.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.descripcion | titlecase }} 
+                                </p> 
+                            </td>
+                            <td align="right" mat-footer-cell *matFooterCellDef> {{getTotalCostTotal() | number: '.2'}} </td>
+                        </ng-container>
+                        
+                        <ng-container matColumnDef="c_visa">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">c. visanet</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <span class="fw-600">{{ element.pp_arr.visa }}</span>                            
+                            </td>
+                            <td align="right" mat-footer-cell *matFooterCellDef> {{getTotalCostVisa() | number: '.2'}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="c_igv">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">c. igv</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <span class="fw-600">{{ element.pp_arr.igv }}</span>
+                            </td>
+                            <td align="right" mat-footer-cell *matFooterCellDef> {{getTotalCostIgv() | number: '.2'}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="c_transaccion">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">c. transaccion</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <span class="fw-600">{{ element.pp_arr.trasaccionalidad }}</span>
+                            </td>
+                            <td align="right" mat-footer-cell *matFooterCellDef> {{getTotalCostTra() | number: '.2'}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="c_entrega">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">c. entrega</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <span class="fw-600">{{ element.pp_repartidor | number: '.2' }}</span>
+                            </td>
+                            <td align="right" mat-footer-cell *matFooterCellDef> {{getTotalCostEntrega() | number: '.2'}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="neto_abonar">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">N. Abonar</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <span class="fw-600">{{ element.pp_arr.total }}</span>
+                            </td>
+                            <td align="right" mat-footer-cell *matFooterCellDef> {{getTotalCostAbono() | number: '.2'}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="action">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">Liquidado</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <ng-container *ngIf="element.check_liquidado === '0' ; else elseTemplate">                                
+                                    <button class="p-1" (click)="checkLiquidado(element.idpedido)"><span class="fs-10">Liquidado</span></button>
+                                </ng-container>
+                                <ng-template #elseTemplate>
+                                    <span class="fw-600 text-success">{{ element.pp_arr.total }}</span>
+                                </ng-template>
+                                                                                
+                            </td>
+                            <td align="right" mat-footer-cell *matFooterCellDef> {{getTotalCostLiquidado() | number: '.2'}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="action_abonado">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">Abonado</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                
+                                <ng-container *ngIf="dataFiltroAbonar.por === '0'; else elseTemplate">
+
+                                    <!-- comercio -->
+                                    <ng-container *ngIf="element.check_pagado === '0' ; else elseTemplate">                                
+                                        <button class="p-1" (click)="checkAbonado(element.idpedido)"><span class="fs-9">Abonado</span></button>
+                                    </ng-container>
+                                    <ng-template #elseTemplate>
+                                        <span class="fw-600 text-success"><i class="fa fa-check"></i></span>
+                                    </ng-template>
+                                    
+                                </ng-container>
+                                <ng-template #elseTemplate>
+                                    
+                                    <!-- repartidor -->
+                                    <ng-container *ngIf="element.check_pago_repartidor === '0' ; else elseTemplate">                                
+                                        <button class="p-1" (click)="checkAbonadoRepartidor(element.idpedido)"><span class="fs-9">Abonado</span></button>
+                                    </ng-container>
+                                    <ng-template #elseTemplate>
+                                        <span class="fw-600 text-success"><i class="fa fa-check"></i></span>
+                                    </ng-template>
+
+                                </ng-template>
+                                                                                    
+                                
+                            </td>
+                            <td mat-footer-cell *matFooterCellDef> </td>
+                        </ng-container>
+        
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsPedidosAbona"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumnsPedidosAbona;"></tr>
+                        <tr mat-footer-row *matFooterRowDef="displayedColumnsPedidosAbona"></tr>
+                    </table>
+                    <mat-paginator [pageSizeOptions]="[20, 40, 60]" showFirstLastButtons #paginatorAbona></mat-paginator>
+                </div>
+            </div>
+        </mat-tab>
+
+    </mat-tab-group>
+</div>
