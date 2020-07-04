@@ -64,15 +64,15 @@ export class SocketService {
     const infToken = this.infoTockenService.infoUsToken.usuario || infoUser;
 
     const dataSocket = {
-      idorg: infToken.idorg,
-      idsede: infToken.idsede,
+      // idorg: infToken.idorg,
+      // idsede: infToken.idsede,
       // idrepartidor: infToken.usuario.idrepartidor,
       idusuario: infToken.idusuario,
       // idcliente: infToken.idcliente,
       // iscliente: infToken.isCliente,
-      isFromApp: opFrom,
-      // isRepartidor: false,
-      isComercio: true,
+      // isFromApp: opFrom,
+      isMonitorPacman: true,
+      // isComercio: true,
       firts_socketid: infToken.socketId
     };
 

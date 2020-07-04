@@ -6,11 +6,12 @@ import { AdminMonitorRoutingModule } from './admin.monitor.routing';
 import { CoreModule } from 'src/app/core/core.module';
 import { ComponentesModule } from 'src/app/componentes/componentes.module';
 import { MaterialModule } from 'src/app/core/material/material.module';
+import { ComerciosComponent } from './comercios/comercios.component';
 
 
 
 @NgModule({
-  declarations: [MainComponent, MonitorComponent],
+  declarations: [MainComponent, MonitorComponent, ComerciosComponent],
   imports: [
     CommonModule,
     AdminMonitorRoutingModule,

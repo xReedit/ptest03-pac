@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DatosDeliveryComponent } from './datos-delivery/datos-delivery.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MaterialModule } from '../core/material/material.module';
-import { GoogleMapsModule } from '@angular/google-maps';
+// import { GoogleMapsModule } from '@angular/google-maps';
 import { DebounceClickDirective } from '../shared/directivas/debounce-click.directive';
 import { EncuestaOpcionComponent } from './encuesta-opcion/encuesta-opcion.component';
 // import { DialogUbicacionComponent } from './dialog-ubicacion/dialog-ubicacion.component';
@@ -37,6 +37,9 @@ import { MapaOrdenesComponent } from './mapa-ordenes/mapa-ordenes.component';
 import { DialogAddRepartidorComponent } from './dialog-add-repartidor/dialog-add-repartidor.component';
 import { ComDateFilterComponent } from './com-date-filter/com-date-filter.component';
 import { NgxMatDrpModule } from 'ngx-mat-daterange-picker';
+import { CompSelectRepartidorComponent } from './comp-select-repartidor/comp-select-repartidor.component';
+import { DialogPagoSedeComponent } from './dialog-pago-sede/dialog-pago-sede.component';
+import { GoogleMapsModule } from '@angular/google-maps';
 // import { DialogSelectDireccionComponent } from './dialog-select-direccion/dialog-select-direccion.component';
 
 @NgModule({
@@ -69,7 +72,9 @@ import { NgxMatDrpModule } from 'ngx-mat-daterange-picker';
     ComResumenAllPedidosComponent,
     MapaOrdenesComponent,
     DialogAddRepartidorComponent,
-    ComDateFilterComponent
+    ComDateFilterComponent,
+    CompSelectRepartidorComponent,
+    DialogPagoSedeComponent
     // DialogSelectDireccionComponent,
     // DialogUbicacionComponent
   ],
@@ -111,7 +116,9 @@ import { NgxMatDrpModule } from 'ngx-mat-daterange-picker';
     ComFacturadorComponent,
     ComResumenAllPedidosComponent,
     MapaOrdenesComponent,
-    ComDateFilterComponent
+    ComDateFilterComponent,
+    CompSelectRepartidorComponent,
+    DialogPagoSedeComponent
   ],
 
   // entryComponents: [

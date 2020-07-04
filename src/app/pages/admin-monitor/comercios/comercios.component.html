@@ -1,0 +1,129 @@
+<div class="d-flex justify-content-between">
+    <h5>Comercios</h5>
+    <div>
+        <button  class="btn btn-info"  (click)="loadComercios()">Actualizar</button>
+    </div>
+</div>    
+
+<table *ngIf="dataComercios" class="table-model-1 w-100" mat-table [dataSource]="dataComercios">      
+    
+    <ng-container matColumnDef="num">
+        <th mat-header-cell *matHeaderCellDef>#</th>
+        <td mat-cell *matCellDef="let element; let i = index;">            
+            {{ i + 1 }}            
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="comercio">
+        <th mat-header-cell *matHeaderCellDef>Comercio</th>
+        <td mat-cell *matCellDef="let element">
+            <p class="fw-600">{{ element.nombre}}</p>                                          
+            <p>{{ element.ciudad}}</p>
+            <p>{{ element.direccion}}</p>
+            <p>{{ element.telefono}}</p>            
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="abierto">
+        <th mat-header-cell *matHeaderCellDef>Abierto</th>
+        <td mat-cell *matCellDef="let element">            
+            <ng-container *ngIf="element.pwa_delivery_comercio_online === 1; else elseTemplate">
+               <span class="badge badge-success">Si</span>
+            </ng-container>
+            <ng-template #elseTemplate>
+                <span class="badge badge-secondary">No</span>
+            </ng-template>                       
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="ultimo_pedido">
+        <th mat-header-cell *matHeaderCellDef>F. Ultimo Pedido</th>
+        <td mat-cell *matCellDef="let element">
+            <p>{{ element.ultimo_pedido}}</p>
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="num_pedidos_total">
+        <th mat-header-cell *matHeaderCellDef >N. Pedidos</th>
+        <td mat-cell *matCellDef="let element">            
+            <p>{{ element.num_pedidos_total}}</p>
+        </td>
+    </ng-container>
+
+    
+    <ng-container matColumnDef="x_consumo">
+        <th mat-header-cell *matHeaderCellDef>x.Canal Total</th>
+        <td mat-cell *matCellDef="let element">
+            <div *ngFor="let item of element.consumo_t">
+                <span class="fs-10"> {{ item.descripcion }} : <strong>{{ item.cantidad }}</strong> </span>                
+            </div>            
+        </td>
+    </ng-container>
+    
+    <ng-container matColumnDef="num_pedidos_delivery_total_app">
+        <th mat-header-cell *matHeaderCellDef class="text-right">x.App</th>
+        <td mat-cell *matCellDef="let element" align="right">
+            {{ element.num_pedidos_delivery_total_app | number}} 
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="num_pedidos_delivery_total_app_last_fpago">
+        <th mat-header-cell *matHeaderCellDef class="text-right">x.App Pendiente</th>
+        <td mat-cell *matCellDef="let element" align="right">
+            <span class="fw-600">{{ element.num_pedidos_delivery_total_app_last_fpago | number }} </span>
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="total_pendiente">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Imp. Total</th>
+        <td mat-cell *matCellDef="let element" align="right">
+            {{ element.importe_app_pediente | number : '.2' }}
+        </td>
+    </ng-container>
+
+    
+    <ng-container matColumnDef="comision">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Comision</th>
+        <td mat-cell *matCellDef="let element" align="right">
+            {{ element.comsion_entrega }} %
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="importe_pagar">
+        <th mat-header-cell *matHeaderCellDef class="text-right">C. Pendiente</th>
+        <td mat-cell *matCellDef="let element" align="right">
+            <span class="fw-600">{{ calComision(element) | number: '.2' }}</span>
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="fijo_restobar">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Plan Restobar</th>
+        <td mat-cell *matCellDef="let element" align="right">
+            {{ element.costo_restobar_fijo_mensual | number: '.2' }}
+        </td>
+    </ng-container>    
+
+    <ng-container matColumnDef="neto_pagar">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Neto. Pagar</th>
+        <td mat-cell *matCellDef="let element" align="right">
+            <span class="fw-600">{{ element.neto_pagar | number: '.2'}}</span>
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="f_last_pago">
+        <th mat-header-cell *matHeaderCellDef class="text-right">F. Ultimo Pago</th>
+        <td mat-cell *matCellDef="let element" align="right">
+            {{ element.last_date_pago}}
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="op">
+        <th mat-header-cell *matHeaderCellDef>.</th>
+        <td mat-cell *matCellDef="let element">
+            <button (click)="registrarPago(element)">Pagar</button>
+        </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumnsPedidos"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumnsPedidos;" [ngClass]="{'color-checked': row.checked}"></tr>
+</table>

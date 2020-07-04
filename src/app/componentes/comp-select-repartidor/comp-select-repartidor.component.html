@@ -1,0 +1,8 @@
+<mat-form-field>
+  <mat-label>{{ label_select }}</mat-label>
+  <mat-select (selectionChange)="setRepartidor($event)">
+    <mat-option *ngFor="let repartidor of listRepartidor" [value]="repartidor">
+      {{repartidor.nombre}} {{repartidor.apellido}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>

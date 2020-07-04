@@ -8,6 +8,7 @@ import { UtilitariosService } from 'src/app/shared/services/utilitarios.service'
 
 // pdf
 import * as html2pdf from 'html2pdf.js';
+import { GoogleMap } from '@angular/google-maps';
 
 @Component({
   selector: 'app-monitor',
@@ -15,6 +16,8 @@ import * as html2pdf from 'html2pdf.js';
   styleUrls: ['./monitor.component.css']
 })
 export class MonitorComponent implements OnInit, OnDestroy {
+  @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
+
   displayedColumnsPedidos: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'importe', 'min_transcurridos', 'min_avisa' ];
   displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'por_aceptar', 'calificacion', 'efectivo_mano', 'atendidos', 'reasignado', 'online', 'ocupado'];
   displayedColumnsCliente: string[] = ['idcliente', 'cliente', 'pwa_id', 'f_registro', 'telefono', 'calificacion'];
@@ -35,7 +38,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   countClientes = 0;
 
   dataFiltroAbonar = {
-    por: 0, // 0 comercio 1 repartidor
+    por: '0', // 0 comercio 1 repartidor
     idcomercio: 0, // todos
     idrepartidor: 0, // todos
     estado: '-1' // -1 todos 0 por abonar 1 abonado
@@ -53,6 +56,17 @@ export class MonitorComponent implements OnInit, OnDestroy {
   rangoAbonoFecha: any = {};
 
   processLoop: any;
+
+  zoom = 15;
+  // center: google.maps.LatLngLiteral;
+  center = {lat: 24, lng: 12};
+  options: google.maps.MapOptions = {
+    zoomControl: true,
+    scrollwheel: true,
+    disableDoubleClickZoom: true,
+    // mapTypeId: 'hybrid'
+  };
+  markerOptionsRepartidor = {draggable: false, icon: './assets/images/delivery-man.png'};
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild('paginatorRepartidor', {static: true}) paginatorRepartidor: MatPaginator;
@@ -89,6 +103,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
     console.log(this.range);
     this.rangoFecha.desde = this.utilesService.getDateString(range.fromDate);
     this.rangoFecha.hasta = this.utilesService.getDateString(range.toDate);
+    this.loadPedidos();
   }
 
   dateRangeAbonoSelected(range: any) {
@@ -120,10 +135,10 @@ export class MonitorComponent implements OnInit, OnDestroy {
     this.crudService.postFree(this.rangeAbono, 'monitor', 'get-pedidos-abono', true)
     .subscribe((res: any) => {
       console.log(res);
-      this.dataPedidosAbonaMaster.data = res.data;
       res.data.map(p => {p.json_datos_delivery = JSON.parse(p.json_datos_delivery); });
 
-      this.dataPedidosAbonaMaster.paginator = this.paginatorAbona;
+      this.dataPedidosAbonaMaster.data = res.data;
+      // this.dataPedidosAbonaMaster.paginator = this.paginatorAbona;
 
       this.verPedidoPagosVisa();
     });
@@ -362,7 +377,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
     _list = this.listFiltroOrigin;
     // tipo
 
-    if ( this.dataFiltroAbonar.por === 0 ) {
+    if ( this.dataFiltroAbonar.por === '0' ) {
       // comercio
       if ( this.dataFiltroAbonar.idcomercio !== 0 ) {
         _list = this.listFiltroOrigin.filter(p => p.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.idsede === this.dataFiltroAbonar.idcomercio);

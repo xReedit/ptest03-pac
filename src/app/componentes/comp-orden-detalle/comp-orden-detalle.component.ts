@@ -3,6 +3,8 @@ import { PedidoComercioService } from 'src/app/shared/services/pedido-comercio.s
 import { PedidoModel } from 'src/app/modelos/pedido.model';
 import { ComercioService } from 'src/app/shared/services/comercio.service';
 import { ListenStatusService } from 'src/app/shared/services/listen-status.service';
+import { CrudHttpService } from 'src/app/shared/services/crud-http.service';
+import { SocketService } from 'src/app/shared/services/socket.service';
 
 @Component({
   selector: 'app-comp-orden-detalle',
@@ -37,10 +39,17 @@ export class CompOrdenDetalleComponent implements OnInit {
   listRepartidoresPropios: any;
   repartidorSelected;
 
+  showListRepartidores = false;
+  orde_codigo_postal = '';
+  label_comp_repartidor = 'Asignar Manual A:';
+  repartidor_selected_manual: any = null;
+  chekAsignacionManual = false;
+
   constructor(
     // private pedidoComercioService: PedidoComercioService,
     private comercioService: ComercioService,
-    private listenService: ListenStatusService
+    private crudService: CrudHttpService,
+    private socketService: SocketService
   ) { }
 
   ngOnInit(): void {
@@ -56,10 +65,15 @@ export class CompOrdenDetalleComponent implements OnInit {
     this.descripcionComoClienteRecoge = this.isRepartidorPaga ? `Y paga el pedido con: ${this.orden.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.descripcion}.` : 'Pedido pagado. Cliente NO paga.';
     this.descripcionDetalleFacturacion = this.orden.json_datos_delivery.p_header.arrDatosDelivery.tipoComprobante.dni ? this.orden.json_datos_delivery.p_header.arrDatosDelivery.tipoComprobante.dni : 'Publico en general';
     this.descripcionDetalleFacturacion = this.descripcionDetalleFacturacion + ' ' + (this.orden.json_datos_delivery.p_header.arrDatosDelivery.tipoComprobante?.otro_dato || '');
+
     // this.isFacturacionActivo = this.comercioService.sedeInfo.facturacion_e_activo === 1;
 
     this.nomRepartidor = this.orden.idrepartidor ? this.orden.nom_repartidor : null;
     this.repartidorSelected = this.orden.idrepartidor;
+
+    this.orden.isClientePasaRecoger = this.orden.json_datos_delivery.p_header.arrDatosDelivery.pasoRecoger;
+    this.showListRepartidores = this.nomRepartidor ? false : true;
+    this.orde_codigo_postal = this.orden.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.codigo_postal;
     // this.isComercioPropioRepartidor = this.comercioService.sedeInfo.pwa_delivery_servicio_propio === 1;
 
     // si tiene repartidores propios
@@ -148,6 +162,60 @@ export class CompOrdenDetalleComponent implements OnInit {
 
   // }
 
+  asignarManualA($event) {
+    console.log('repartidor select', $event);
+    this.repartidor_selected_manual = $event;
+  }
+
+  confirmarAsignacionManual() {
+    this.chekAsignacionManual = true;
+    let pedidos_repartidor = this.repartidor_selected_manual.pedido_por_aceptar;
+
+    const _importePedido = parseFloat(this.orden.total_r);
+    if ( pedidos_repartidor ) {
+      pedidos_repartidor.pedidos.push(this.orden.idpedido);
+      pedidos_repartidor.importe_acumula = parseFloat( pedidos_repartidor.importe_acumula ) + _importePedido;
+      pedidos_repartidor.importe_pagar = parseFloat( pedidos_repartidor.importe_pagar ) + _importePedido;
+      pedidos_repartidor.pedido_asignado_manual = this.orden.idpedido; // para reset a los demas repartidores
+      pedidos_repartidor.idrepartidor = this.repartidor_selected_manual.idrepartidor;
+    } else {
+      const _listPedido = [];
+      _listPedido.push(this.orden.idpedido);
+
+      pedidos_repartidor = {
+        pedidos: _listPedido,
+        importe_acumula: _importePedido.toFixed(2),
+        importe_pagar: _importePedido.toFixed(2),
+        // last_id_repartidor_reasigno: _last_id_repartidor_reasigno,
+        idsede: this.orden.idsede,
+        idrepartidor: this.repartidor_selected_manual.idrepartidor,
+        // num_reasignaciones: _num_reasignaciones,
+        pedido_asignado_manual: this.orden.idpedido,
+        sede_coordenadas: {
+          latitude: this.orden.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.latitude,
+          longitude: this.orden.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.longitude
+        }
+      };
+
+    }
+
+    const _dataSend = {
+      pedido : pedidos_repartidor
+    };
+
+    this.crudService.postFree(_dataSend, 'monitor', 'set-asignar-pedido-manual', true)
+    .subscribe( res => {
+      // console.log(res);
+      this.orden.nom_repartidor = this.repartidor_selected_manual.nombre;
+      this.orden.idrepartidor = this.repartidor_selected_manual.idrepartidor;
+      this.orden.telefono_repartidor = this.repartidor_selected_manual.telefono_repartidor;
+
+      // emitir socket al rerpatidor para que recargue
+      this.socketService.emit('set-asigna-pedido-repartidor-manual', pedidos_repartidor);
+    });
+
+
+  }
 
   cerrarDetalles(val: boolean) {
     if ( val ) {

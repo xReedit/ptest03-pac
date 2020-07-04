@@ -27,6 +27,9 @@
                                 <span *ngIf="element.pwa_estado !== 'P'">Visto</span>
                                 <span *ngIf="element.pwa_estado === 'P'">No visto</span>
                             </span>
+                            <span *ngIf="element.json_datos_delivery.p_header.arrDatosDelivery.pasoRecoger" class="fw-600 badge badge-warning" >
+                                <span><i class="fa fa-user"></i>Recoje cliente</span>
+                            </span>
                         </td>
                     </ng-container>
     
@@ -128,6 +131,7 @@
             <div class="p-3">                
                 <h5>Repartidores</h5>
                 <button class="btn btn-info" (click)="loadRepartidores()">Actualizar</button>
+                <button class="btn btn-warning ml-2"><i class="fa fa-map"></i>  Ver Mapa</button>
                 <hr>
 
                 <div *ngIf="listPedidosPendientes">
@@ -145,8 +149,37 @@
 
 
                 <hr>
+
+                <!-- mapa -->
+                <div>
+                    <h5>Repartidor en el mapa</h5>
+                    <google-map height="500px" width="100%"
+                        [zoom]="zoom" [center]="center"
+                        >
+
+                        <!-- <map-marker *ngIf="markerComercio" #markerElemComercio
+                            [position]="markerComercio.position"
+                            [title]="markerComercio.title" [options]="markerComercio.options"
+                            (mapClick)="openInfo(markerElemComercio, markerComercio)">  
+                        </map-marker> -->
+
+                        <!-- <map-marker #markerElemRepartidor *ngFor="let markerRepartidor of markersRepartidores"
+                            [position]="markerRepartidor.position" [label]="markerRepartidor.label"
+                            [title]="markerRepartidor.title" [options]="markerOptionsRepartidor"
+                            (mapClick)="openInfo(markerElemRepartidor, markerRepartidor)">  
+                        </map-marker>
+
+                        <map-marker #markerElem *ngFor="let marker of markersPedidos; let i = index;"
+                            [position]="marker.position" [label]="marker.label"
+                            [title]="marker.title" [options]="marker.options"
+                            (mapClick)="openPedido(i)">  
+                        </map-marker> -->
+
+                    </google-map>
+                </div>
                         
 
+                <!-- lista -->
                 <table *ngIf="dataRepartidores" class="table-model-1 w-100" mat-table [dataSource]="dataRepartidores">      
     
                     <ng-container matColumnDef="repartidor">
@@ -558,6 +591,14 @@
                 </div>
             </div>
         </mat-tab>
+
+
+        <!-- repartidores -->
+        <mat-tab label="Comercios"> 
+            <div class="p-3">                       
+                <app-comercios></app-comercios>
+            </div>
+        </mat-tab>        
 
     </mat-tab-group>
 </div>
