@@ -149,34 +149,13 @@
 
 
                 <hr>
+            
 
-                <!-- mapa -->
                 <div>
-                    <h5>Repartidor en el mapa</h5>
-                    <google-map height="500px" width="100%"
-                        [zoom]="zoom" [center]="center"
-                        >
-
-                        <!-- <map-marker *ngIf="markerComercio" #markerElemComercio
-                            [position]="markerComercio.position"
-                            [title]="markerComercio.title" [options]="markerComercio.options"
-                            (mapClick)="openInfo(markerElemComercio, markerComercio)">  
-                        </map-marker> -->
-
-                        <!-- <map-marker #markerElemRepartidor *ngFor="let markerRepartidor of markersRepartidores"
-                            [position]="markerRepartidor.position" [label]="markerRepartidor.label"
-                            [title]="markerRepartidor.title" [options]="markerOptionsRepartidor"
-                            (mapClick)="openInfo(markerElemRepartidor, markerRepartidor)">  
-                        </map-marker>
-
-                        <map-marker #markerElem *ngFor="let marker of markersPedidos; let i = index;"
-                            [position]="marker.position" [label]="marker.label"
-                            [title]="marker.title" [options]="marker.options"
-                            (mapClick)="openPedido(i)">  
-                        </map-marker> -->
-
-                    </google-map>
+                    <h5>Repartidor en el mapa</h5>        
+                    <app-mapa-repartidores-pedidos [listpedidos]="listPPendienteSocket"></app-mapa-repartidores-pedidos>
                 </div>
+                <hr>
                         
 
                 <!-- lista -->

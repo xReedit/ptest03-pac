@@ -13,7 +13,7 @@ export class DialogPagoSedeComponent implements OnInit {
   registerForm: FormGroup;
   listHistorialPago: any;
 
-  private dataSede: any;
+  dataSede: any;
   constructor(
     private formBuilder: FormBuilder,
     private crudService: CrudHttpService,

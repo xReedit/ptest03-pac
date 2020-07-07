@@ -72,6 +72,7 @@ export class SocketService {
       // iscliente: infToken.isCliente,
       // isFromApp: opFrom,
       isMonitorPacman: true,
+      roomMonitor: 'MONITOR',
       // isComercio: true,
       firts_socketid: infToken.socketId
     };

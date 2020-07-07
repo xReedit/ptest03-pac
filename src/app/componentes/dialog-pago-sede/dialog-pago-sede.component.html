@@ -5,15 +5,15 @@
         <p>Fecha pago</p>
         
         <form [formGroup]="registerForm">
-            <input type="date" formControlName="fecha" [(ngModel)]="fecha">
+            <input type="date" formControlName="fecha">
         
             <div class="w-100">
                 <mat-form-field class="w-100">        
-                    <input matInput placeholder="Detalle" formControlName="descripcion" [(ngModel)]="descripcion">
+                    <input matInput placeholder="Detalle" formControlName="descripcion">
                 </mat-form-field>
                 <br>
                 <mat-form-field>        
-                    <input type="number" matInput placeholder="Importe Pagar" formControlName="importe" [(ngModel)]="importe">
+                    <input type="number" matInput placeholder="Importe Pagar" formControlName="importe">
                 </mat-form-field>
             </div>
         </form>

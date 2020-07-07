@@ -9,7 +9,6 @@ import { MaterialModule } from 'src/app/core/material/material.module';
 import { ComerciosComponent } from './comercios/comercios.component';
 
 
-
 @NgModule({
   declarations: [MainComponent, MonitorComponent, ComerciosComponent],
   imports: [
@@ -17,7 +16,7 @@ import { ComerciosComponent } from './comercios/comercios.component';
     AdminMonitorRoutingModule,
     CoreModule,
     ComponentesModule,
-    MaterialModule,
+    MaterialModule
   ]
 })
 export class AdminMonitorModule { }

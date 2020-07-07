@@ -9,6 +9,7 @@ import { UtilitariosService } from 'src/app/shared/services/utilitarios.service'
 // pdf
 import * as html2pdf from 'html2pdf.js';
 import { GoogleMap } from '@angular/google-maps';
+import { SocketService } from 'src/app/shared/services/socket.service';
 
 @Component({
   selector: 'app-monitor',
@@ -16,7 +17,7 @@ import { GoogleMap } from '@angular/google-maps';
   styleUrls: ['./monitor.component.css']
 })
 export class MonitorComponent implements OnInit, OnDestroy {
-  @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
+  // @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
 
   displayedColumnsPedidos: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'importe', 'min_transcurridos', 'min_avisa' ];
   displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'por_aceptar', 'calificacion', 'efectivo_mano', 'atendidos', 'reasignado', 'online', 'ocupado'];
@@ -31,6 +32,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   dataClientes = new MatTableDataSource<any>();
   dataPedidosAbona = new MatTableDataSource<any>();
   listPedidosPendientes: any;
+  listPPendienteSocket: any;
   listFiltroOrigin: any;
   sumTotalAbona = 0;
   countPedidosAbonar = 0;
@@ -57,16 +59,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   processLoop: any;
 
-  zoom = 15;
-  // center: google.maps.LatLngLiteral;
-  center = {lat: 24, lng: 12};
-  options: google.maps.MapOptions = {
-    zoomControl: true,
-    scrollwheel: true,
-    disableDoubleClickZoom: true,
-    // mapTypeId: 'hybrid'
-  };
-  markerOptionsRepartidor = {draggable: false, icon: './assets/images/delivery-man.png'};
+
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild('paginatorRepartidor', {static: true}) paginatorRepartidor: MatPaginator;
@@ -75,7 +68,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   constructor(
     private crudService: CrudHttpService,
     private utilesService: UtilitariosService,
-    private dialog: MatDialog,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -177,6 +170,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
       // const _list = res.data[0];
 
       // console.log('_list', _list);
+      this.listPPendienteSocket = res.data;
 
       res.data
       .map(p => {
@@ -184,6 +178,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
         const _row = {
           sede: p.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.nombre,
           pedido: p.idpedido,
+          elpedido: p,
           tiempo: p.min_transcurridos,
           solicito_repartidor: p.flag_solicita_repartidor_papaya
         };

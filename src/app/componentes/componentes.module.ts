@@ -40,6 +40,7 @@ import { NgxMatDrpModule } from 'ngx-mat-daterange-picker';
 import { CompSelectRepartidorComponent } from './comp-select-repartidor/comp-select-repartidor.component';
 import { DialogPagoSedeComponent } from './dialog-pago-sede/dialog-pago-sede.component';
 import { GoogleMapsModule } from '@angular/google-maps';
+import { MapaRepartidoresPedidosComponent } from './mapa-repartidores-pedidos/mapa-repartidores-pedidos.component';
 // import { DialogSelectDireccionComponent } from './dialog-select-direccion/dialog-select-direccion.component';
 
 @NgModule({
@@ -74,7 +75,8 @@ import { GoogleMapsModule } from '@angular/google-maps';
     DialogAddRepartidorComponent,
     ComDateFilterComponent,
     CompSelectRepartidorComponent,
-    DialogPagoSedeComponent
+    DialogPagoSedeComponent,
+    MapaRepartidoresPedidosComponent
     // DialogSelectDireccionComponent,
     // DialogUbicacionComponent
   ],
@@ -118,7 +120,8 @@ import { GoogleMapsModule } from '@angular/google-maps';
     MapaOrdenesComponent,
     ComDateFilterComponent,
     CompSelectRepartidorComponent,
-    DialogPagoSedeComponent
+    DialogPagoSedeComponent,
+    MapaRepartidoresPedidosComponent
   ],
 
   // entryComponents: [
