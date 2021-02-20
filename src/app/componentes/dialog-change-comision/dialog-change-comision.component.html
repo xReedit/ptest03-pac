@@ -1,0 +1,35 @@
+<div>
+
+    <mat-form-field>
+        <mat-label>Plaza</mat-label>
+        <mat-select [(value)]="plazaSelected" (selectionChange)="changePlaza()">
+          <mat-option *ngFor="let item of listPlazas" [value]="item">
+            {{item.ciudad}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <hr>
+      <div>
+        <mat-form-field>        
+            <input matInput type="number" placeholder="Costo Base S/." [(ngModel)]="plazaSelected.c_minimo" name="c_minimo">
+        </mat-form-field>
+        <mat-form-field>        
+            <input matInput type="number" placeholder="Costo Km Adicional S/." [(ngModel)]="plazaSelected.c_km" name="c_km">
+        </mat-form-field>
+
+        <br>
+        <div *ngIf="plazaSelected.icons_entrega">
+            <p class="fs-600 fs-18">Iconos a mostrar</p>
+            <div *ngFor="let itemCheck of plazaSelected.icons_entrega">
+                <mat-checkbox class="example-margin" [checked]="itemCheck.visible" [(ngModel)]="itemCheck.visible">{{ itemCheck.motivo }}</mat-checkbox>
+            </div>
+        </div>
+      </div>
+      
+      <hr>
+      <div>
+        <button mat-flat-button color="primary" (click)="guardarCambios()">Guardar</button>
+        <button mat-flat-button color="accent" class="ml-2" mat-dialog-close>Cancelar</button>
+      </div>
+</div>

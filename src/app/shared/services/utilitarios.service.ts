@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { _MatCheckboxRequiredValidatorModule } from '@angular/material/checkbox';
 
 @Injectable({
   providedIn: 'root'
@@ -66,4 +67,10 @@ export class UtilitariosService {
     while ( Num.length < CantidadCeros ) {Num = '0' + Num; }
     return Num;
  }
+
+ setDateTimeFormat(_date) {
+  const myDate = new Date(_date);
+  const _hora = this.xCeroIzq(myDate.getHours(), 2 ) + ':' + this.xCeroIzq(myDate.getMinutes(), 2 ) + ':' + this.xCeroIzq(myDate.getSeconds(), 2 );
+  return this.xCeroIzq(myDate.getDate(), 2 ) + '/' + this.xCeroIzq(myDate.getMonth() + 1, 2 ) + '/' + this.xCeroIzq(myDate.getFullYear(), 2 ) + ' ' +  _hora;
+}
 }

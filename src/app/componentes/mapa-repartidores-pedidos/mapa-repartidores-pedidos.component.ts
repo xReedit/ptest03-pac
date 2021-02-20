@@ -39,7 +39,7 @@ export class MapaRepartidoresPedidosComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.loadCiudades();
-    // this.laodComercioAfiliados();
+    this.laodComercioAfiliados();
     this.listenSockets();
     // console.log('listpedidos', this.listpedidos);
   }
@@ -67,6 +67,7 @@ export class MapaRepartidoresPedidosComponent implements OnInit, OnChanges {
     .subscribe(res => {
       // console.log('onRepartidorNotificaUbicacion', res);
       // this.updateUbiucacion(res);
+      this.loadRepartidoresPedidosAsignados();
       console.log('onGetPedidoAceptadoByReparidor', res);
     });
   }
@@ -84,7 +85,7 @@ export class MapaRepartidoresPedidosComponent implements OnInit, OnChanges {
   laodComercioAfiliados() {
     this.crudService.getAll('monitor', 'get-historial-pago', false, false, true)
     .subscribe((res: any) => {
-      // console.log('laodComercioAfiliados', res);
+      console.log('laodComercioAfiliados', res);
       this.dataComercio = res.data;
 
       this.loadRepartidores();
@@ -95,6 +96,7 @@ export class MapaRepartidoresPedidosComponent implements OnInit, OnChanges {
   loadRepartidores() {
     this.crudService.getAll('monitor', 'get-repartidores-conectado', false, false, true)
     .subscribe((res: any) => {
+      console.log('this.dataRepartidores', this.dataRepartidores);
       this.dataRepartidores = res.data;
       this.addMarkerComercio();
 
@@ -172,7 +174,12 @@ export class MapaRepartidoresPedidosComponent implements OnInit, OnChanges {
 
   private addMarkerPedidos() {
     this.markerPedidos = [];
+
     this.listpedidos.map((c: any) => {
+
+      if ( typeof c.json_datos_delivery === 'string' ) {
+        c.json_datos_delivery = JSON.parse(c.json_datos_delivery);
+      }
 
       const _pedido = {
         idpedido: c.idpedido,

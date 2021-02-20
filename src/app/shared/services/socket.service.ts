@@ -296,6 +296,15 @@ export class SocketService {
     });
   }
 
+  // respuesta de hacer un nuevo pedido, para actualizar vista, cuando son pedidos enviados desde venta rapida y no traen la estructura del pedido
+  onGetNuevoPedidoUpdateVista() {
+    return new Observable(observer => {
+      this.socket.on('nuevoPedidoUpdateVista', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
   onGetPedidoAceptadoByReparidor() {
     return new Observable(observer => {
       this.socket.on('repartidor-notifica-a-comercio-pedido-aceptado', (res: any) => {
@@ -315,6 +324,42 @@ export class SocketService {
   onRepartidorNotificaFinPedido() {
     return new Observable(observer => {
       this.socket.on('repartidor-propio-notifica-fin-pedido', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
+  // repartidor no acepto el pedido a tiempo asi que lo quita
+  onMonitorQuitaPedidoRepartidor() {
+    return new Observable(observer => {
+      this.socket.on('notifica-server-quita-pedido-repartidor', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
+  // notifica el pedido a repartidor a espera que lo acepte
+  onMonitorNotificaPedidoRepartidor() {
+    return new Observable(observer => {
+      this.socket.on('notifica-server-pedido-por-aceptar', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
+  onMonitorPedidosPendientes() {
+    return new Observable(observer => {
+      this.socket.on('notifica-pedidos-pendientes', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
+
+  // repartidor conectado
+  onMonitorRepartidorOnline() {
+    return new Observable(observer => {
+      this.socket.on('notifica-repartidor-online', (res: any) => {
         observer.next(res);
       });
     });

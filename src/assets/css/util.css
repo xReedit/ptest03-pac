@@ -33,7 +33,7 @@ body, html {
 
 	/* para que no paresca el refresh del navegador overscroll-behavior-y: contain;*/
 	/* overscroll-behavior-y: contain; */
-	-webkit-user-select: none;
+	/* -webkit-user-select: none; */
 	-webkit-tap-highlight-color: transparent;
 	-webkit-touch-callout: none;
 }
@@ -366,6 +366,18 @@ p, span, div {
 .btn-link-2.active {
 	text-decoration: none;
 	color: gold;
+	font-weight: 600;
+}
+
+.btn-link-3:hover {
+	text-decoration: none;
+	color: #4fc3f7;
+	cursor: pointer;
+}
+
+.btn-link-3.active {
+	text-decoration: none;
+	color: #4fc3f7;
 	font-weight: 600;
 }
 

@@ -1,0 +1,20 @@
+<div class="w-100 animated fadeIn">    
+    <div class="w-100 d-flex">
+        <div class="div-sede d-flex align-items-center" *ngFor="let item of listSede">
+            <div>
+                <p class="fs-11">{{item.ciudad}}</p>
+                <p class="fw-600 fs-9">{{ item.clima_des | titlecase }}</p>                                
+                <div class="text-center w-100" *ngIf="item.clima_comision">
+                    <span class="fw-100 fs-9">Base: <span class="fw-600 fs-9"> {{ item.clima_comision.costo_show | number: '.2' }} </span></span>
+                    <span class="fw-100 fs-9">x Km +: <span class="fw-600 fs-9"> {{ item.clima_comision.costo_x_km_adicional_show | number: '.2'}} </span></span>
+                </div>            
+            </div>
+            <div>
+                <img src="{{item.clima_img}}" alt="">
+                <i *ngIf="isSubeComision" class="fa fa-arrow-up text-success"></i>
+            </div>
+        </div>        
+    </div>
+</div>
+
+

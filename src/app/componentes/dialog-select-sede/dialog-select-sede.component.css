@@ -1,0 +1,14 @@
+.div-dialog {
+    width: 500px;
+}
+
+.div-list {
+    width: 100%;
+    min-height: 40vh;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+tr.xrow:hover {
+    background: beige;
+}

@@ -1,0 +1,22 @@
+<p class="m-0">{{dataSede.nombre}}</p>
+<p class="fs-13 m-0">{{dataSede.ciudad}}</p>
+<hr>
+<div>
+    <form [formGroup]="registerForm">        
+    
+        <div class="w-100">
+            <mat-form-field class="w-100">        
+                <input matInput placeholder="Porcentaje Comsion" formControlName="comision">
+            </mat-form-field>
+            <br>
+            <mat-form-field>        
+                <input type="number" matInput placeholder="Plan Restobar" formControlName="restobar">
+            </mat-form-field>
+        </div>
+    </form>
+</div>
+
+<hr>
+<button mat-flat-button color="primary" (click)="guardarSede()">Guardar</button>
+<button class="ml-1" mat-stroked-button mat-dialog-close>Cerrar</button>
+

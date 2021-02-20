@@ -1,0 +1,152 @@
+<div class="animated fadeIn p-5 content-body">
+    <div class="d-flex m-0 align-items-center">
+        <div class="xCursor btn-link-3 d-flex" (click)="buscarSede()">
+            <a><h5 class="mr-2">{{ sedeInfo.nombre }}</h5></a>
+            <i class="fa fa-search"></i>
+        </div>
+        <div class="xCursor btn-link-3 pl-3 text-center" (click)="sdeInfoDialog()">
+            <i class="fa fa-pencil"></i>
+            <p class="fs-10">Editar</p>
+        </div>
+        <div class="xCursor btn-link-3 pl-3 text-center" (click)="viewListPedidos()">
+            <i class="fa fa-list"></i>
+            <p class="fs-10">Lista pedidos</p>
+        </div>
+        <div class="xCursor btn-link-3 pl-3 text-center" (click)="viewListDescuentos()">
+            <i class="fa fa-money"></i>
+            <p class="fs-10">Descuentos</p>
+        </div>
+    </div>
+    
+
+    <hr>    
+    <div *ngIf="opView === 1">
+        <app-dialog-sede-descuentos [sedeInfo]="sedeInfo"></app-dialog-sede-descuentos>
+    </div>
+    
+
+    <div *ngIf="opView === 0">
+    
+        <div class="d-flex justify-content-between align-content-center">
+            <div class="d-flex">
+                <div>
+                    <ng-container *ngIf="sedeInfo.pwa_delivery_servicio_propio === 1; else elseTemplate">
+                        <span class="badge badge-info">Propio reparto</span>
+                    </ng-container>
+                    <ng-template #elseTemplate>
+                            <span class="badge badge-success">red repartidores</span>
+                    </ng-template>
+                
+                    <span class="badge badge-info ml-2"> Comision {{ sedeInfo.comsion_entrega }} %</span>
+                    <span class="badge badge-info ml-2"> Restobar {{ sedeInfo.costo_restobar_fijo_mensual | number: '0.2'}} </span>
+                </div>
+        
+                <div class="ml-3 border-left-1">
+                    <span class="fs-12">Ultimo pedido: {{ sedeInfo.ultimo_pedido }} </span>
+                </div> 
+                
+                <div class="ml-3 border-left-1">
+                    <span class="fs-12">Pedidos por la app: <span class="badge badge-success">{{ countPedidosApp }}</span>  </span>
+                </div> 
+            </div>
+
+            <div class="text-right">            
+                <button  class="btn btn-info mr-2"  (click)="registrarPago()"> <i class="fa fa-diamond"></i> Registrar Pago</button>
+                <button  class="btn btn-warning"  (click)="exportPdf()"> <i class="fa fa-download"></i> PDF</button>
+            </div>
+        </div>
+        <hr>
+
+        <div id="element-to-print">
+            <!-- rango fecha -->
+            <div class="d-flex justify-content-between">
+                <div>
+                    <div class="d-flex">
+                        <app-com-date-filter (RangeSelected)="dateRangeAbonoSelected($event)"></app-com-date-filter>
+                    </div>
+                    <div class="fs-12" *ngIf="sedeInfo.data_calc">  
+                        <span class="fw-600"> Canales de consumo : </span>
+                        <span *ngFor="let item of sedeInfo.data_calc.pedidos" class="pl-2 fs-12">
+                            {{ item.descripcion }} {{ item.cantidad }} |
+                        </span>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <h5 class="m-0">{{ sedeInfo.nombre }}</h5>
+                    <p class="m-0"> {{ sedeInfo.ciudad }} </p>
+                </div>
+            </div>
+            <hr>
+
+
+            <table *ngIf="listAbona" class="table-model-1 w-100" mat-table [dataSource]="dataPedidosAbona">      
+                
+                <ng-container matColumnDef="num_pedido">
+                    <th mat-header-cell *matHeaderCellDef>Pedido</th>
+                    <td mat-cell *matCellDef="let element">
+                        <a (click)="verPedido(element)"> {{ element.idpedido}} </a>
+                        <!-- <button class="p-1" (click)="verPedido(element)"><p class="fw-600">{{ element.idpedido}}</p></button>                             -->
+                        <p>{{ element.fecha}} {{ element.hora}}</p>                                              
+                    </td>
+                    <td mat-footer-cell *matFooterCellDef> Totales </td>
+                </ng-container>            
+
+                <ng-container matColumnDef="cliente">
+                    <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                    <td mat-cell *matCellDef="let element">
+                        <p>{{ element.json_datos_delivery.p_header.arrDatosDelivery.nombre }}</p>              
+                        <ng-container *ngIf="element.json_datos_delivery.p_header.isCliente === 1; else elseTemplate">                        
+                            <p class="badge badge-success">
+                                APP
+                            </p>
+                        </ng-container>
+                        <ng-template #elseTemplate>
+                            <p class="badge badge-secondary">
+                                Interno
+                            </p>
+                        </ng-template>
+                        
+                        <!-- <p>{{ element.json_datos_delivery.p_header.arrDatosDelivery.direccion}}</p>
+                        <p>{{ element.json_datos_delivery.p_header.arrDatosDelivery.telefono}}</p> -->
+                    </td>
+                    <td mat-footer-cell *matFooterCellDef> </td>
+                </ng-container>
+
+                <ng-container matColumnDef="reparto">
+                    <th mat-header-cell *matHeaderCellDef >Repartidor</th>
+                    <td mat-cell *matCellDef="let element">
+                        <ng-container *ngIf="!element.isPedidoLlevoPapaya; else elseTemplate">
+                            <span class="badge badge-info">Propio</span>
+                        </ng-container>
+                        <ng-template #elseTemplate>
+                            <span class="badge badge-success">papaya</span>
+                        </ng-template>
+                    </td>
+                    <td mat-footer-cell *matFooterCellDef> </td>
+                </ng-container>
+                            
+                <ng-container matColumnDef="subtotal">
+                    <th mat-header-cell *matHeaderCellDef class="text-right">Imp. Pedido</th>
+                    <td mat-cell *matCellDef="let element" align="right">
+                        <span class="fw-600">{{ element.pp_subtotal | number:'.2' }}</span>
+                    </td>
+                    <td align="right" mat-footer-cell *matFooterCellDef> <span class="fw-600 fs-15"> {{getTotal() | number: '.2'}} </span></td>
+                </ng-container>
+
+                <ng-container matColumnDef="c_papaya">
+                    <th mat-header-cell *matHeaderCellDef class="text-right">Comision Papaya</th>
+                    <td mat-cell *matCellDef="let element" align="right">
+                        <span class="fw-600">{{ element.pp_comision | number:'.2'}}</span>
+                    </td>
+                    <td align="right" mat-footer-cell *matFooterCellDef><span class="fw-600 fs-15"> {{getTotalComision() | number: '.2'}} </span> </td>
+                </ng-container>        
+                
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumnsPedidosAbona"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumnsPedidosAbona;"></tr>
+                <tr mat-footer-row *matFooterRowDef="displayedColumnsPedidosAbona"></tr>
+            </table>
+        </div>
+    </div>
+</div>

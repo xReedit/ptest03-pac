@@ -1,3 +1,13 @@
 p {
     margin: 0;
 }
+
+.x-footer-clima {
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    width: 100%;
+    background: #343a40;
+    overflow: auto;
+}

@@ -21,6 +21,9 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatTableModule} from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatMenuModule} from '@angular/material/menu';
 // import {MatSidenavModule} from '@angular/material/sidenav';
 // import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -48,6 +51,9 @@ import {MatPaginatorModule} from '@angular/material/paginator';
     MatSidenavModule,
     MatTableModule,
     MatPaginatorModule,
+    MatDatepickerModule,
+    MatAutocompleteModule,
+    MatMenuModule
     // MatSidenavModule
     // MatTooltipModule
   ],
@@ -70,7 +76,10 @@ import {MatPaginatorModule} from '@angular/material/paginator';
     MatSelectModule,
     MatSidenavModule,
     MatTableModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatDatepickerModule,
+    MatAutocompleteModule,
+    MatMenuModule
     // MatSidenavModule
     // MatTooltipModule
   ]

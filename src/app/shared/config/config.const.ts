@@ -19,4 +19,3 @@ export const TOKEN_SMS = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoicGFwY
 
 
 // export const URL_SERVER_SOCKET = '/'; // produccion
-

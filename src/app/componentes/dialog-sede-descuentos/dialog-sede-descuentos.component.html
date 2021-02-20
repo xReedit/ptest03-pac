@@ -1,0 +1,152 @@
+<h4>Descuentos en productos</h4>
+<hr>
+<div>    
+        <div *ngIf="!viewList"> 
+
+            <div style="width: 600px;">
+
+            
+                <mat-form-field class="w-100">
+                    <mat-label>Descripcion de la campaña</mat-label>
+                    <input matInput [(ngModel)]="datosDescuento.descripcion">
+                </mat-form-field>
+
+                <div>                
+                    <mat-form-field class="w-100">
+                        <mat-label>Fecha inicio</mat-label>
+                        <input matInput type="datetime-local" [(ngModel)]="datosDescuento.f_ini">
+                        <!-- <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle> -->
+                        <!-- <mat-datepicker #picker></mat-datepicker> -->
+                    </mat-form-field>
+
+                    <!-- <mat-form-field>
+                        <mat-label>Hora Inicio en 24 horas</mat-label>
+                        <input matInput #hini [(ngModel)]="datosDescuento.f_hasta">
+                    </mat-form-field> -->
+                </div>
+                
+
+                <div>
+                    <mat-form-field class="w-100">
+                        <mat-label>Fecha Fin</mat-label>
+                        <input matInput type="datetime-local" [(ngModel)]="datosDescuento.f_fin">
+                        <!-- <input matInput type="datetime-local" [matDatepicker]="picker1" [(ngModel)]="datosDescuento.ffin">
+                        <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+                        <mat-datepicker #picker1></mat-datepicker> -->
+                    </mat-form-field>
+
+                    <!-- <mat-form-field>
+                        <mat-label>Hora Fin en 24 horas</mat-label>
+                        <input matInput #hfin [(ngModel)]="datosDescuento.hfin">
+                    </mat-form-field> -->
+                </div>
+            </div>
+
+                <div>
+                    <mat-form-field>
+                        <mat-label>Aplica A:</mat-label>
+                        <mat-select (selectionChange)="selectedAplica($event)">
+                        <mat-option *ngFor="let item of listAplica" [value]="item.id">
+                            {{item.descripcion}}
+                        </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field>
+                        <mat-label>Para los primeros (opcional)</mat-label>
+                        <input matInput [(ngModel)]="datosDescuento.numero_pedidos" value="0">
+                    </mat-form-field>
+                </div>
+
+                <div class="w-100">
+                    <form>
+                        <div class="d-flex w-100 justify-content-between">
+                            <mat-form-field class="w-100">
+                            <input type="text"
+                                    placeholder="Buscar"
+                                    aria-label="Number"
+                                    matInput
+                                    [formControl]="myControl"
+                                    [matAutocomplete]="auto">
+                            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="additemList($event)" [displayWith]="displayFn">
+                                <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+                                {{ option.descripcion }}
+                                </mat-option>
+                            </mat-autocomplete>
+                            </mat-form-field>
+        
+                            <mat-form-field>
+                                <mat-label>Descuento Porcentaje</mat-label>
+                                <input class="text-center" matInput type="number" #txtPorcentaje>
+                            </mat-form-field>
+        
+                            
+                            <button mat-mini-fab (click)="additem(txtPorcentaje.value)"><mat-icon>+</mat-icon></button>
+                        </div>
+                    </form>
+
+                    <table class="w-100">                      
+                        <tr *ngFor="let item of listItems" class="border-bottom">
+                            <td> {{ item.descripcion }} </td>
+                            <td> <span class="text-center w-100"> {{ item.porcentaje }} </span></td>
+                            <td style="width: 15px;"> <i class="fa fa-trash xCursor" (click)="removeItem(item)"></i> </td>
+                        </tr>
+                    </table>
+
+                    <br>
+                    <!-- <button mat-button color="primary" (click)="guardarDescuento()">Guardar Descuento</button> -->
+                    <button [disabled] = "this.datosDescuento.idsede_descuento" mat-flat-button color="primary" (click)="guardarDescuento()">Guardar Descuento</button>
+                    <button mat-flat-button color="accent" (click)="vistaComponente()" class="ml-2">Atras</button>
+                </div>
+
+            
+                
+        </div>
+        
+        <!-- lista -->
+        <div *ngIf="viewList">
+
+            <div class="d-flex justify-content-between">
+                <h5>Lista de descuentos</h5>
+                <div>
+                    <button mat-mini-fab (click)="nuevoDescuento()"><mat-icon>+</mat-icon></button>
+                </div>
+            </div>
+
+            <table class="w-100">
+                <thead>
+                    <th>#</th>
+                    <th>Descripcion</th>
+                    <th>F. Inicio</th>
+                    <th>F. Fin</th>
+                    <th># Pedidos</th>
+                    <th>Activo</th>
+                    <th></th>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of listDescuentosSede; let i = index;" class="border-bottom">
+                        <td>{{ i + 1 }}</td>
+                        <td> {{ item.descripcion }} </td>
+                        <td> {{ item.f_desde }} </td>
+                        <td> {{ item.f_fin }} </td>
+                        <td> {{ item.numero_pedidos }} </td>
+                        <td> 
+                            <ng-container *ngIf="item.activo == 1 && item.numero_pedidos > 0; else elseTemplate">
+                                <i class="fa fa-circle text-success"></i>
+                            </ng-container>
+                            <ng-template #elseTemplate>
+                                <i class="fa fa-circle text-danger"></i>
+                            </ng-template>                            
+                        </td>
+                        <td>
+                            <i (click)="editRow(item)" class="fa fa-pencil xCursor pr-2"></i>
+                            <i (click)="deleteRow(item)" class="fa fa-trash xCursor"></i>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    
+
+</div>

@@ -1,0 +1,11 @@
+.div-sede {
+    border-radius: 5px;
+    border: solid 1px #bdbdbd;
+    padding: 10px;
+    margin: 5px;
+    min-width: 170px;    
+    text-align: center;
+    background: lightgrey;
+}
+
+.div-sede p { margin: 0;}

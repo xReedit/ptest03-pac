@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { MainComponent } from './main/main.component';
 import { MonitorComponent } from './monitor/monitor.component';
 import { ComerciosComponent } from './comercios/comercios.component';
+import { ComercioResumenPagoComponent } from './comercio-resumen-pago/comercio-resumen-pago.component';
 
 
 const routes: Routes = [{
@@ -21,6 +22,11 @@ const routes: Routes = [{
             path: 'comercios',
             component: ComerciosComponent,
             data: { titulo: 'Comercios' }
+        },
+        {
+            path: 'comercio-pago',
+            component: ComercioResumenPagoComponent,
+            data: { titulo: 'Comercios Pago' }
         }
     ]
 }];

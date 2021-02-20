@@ -54,7 +54,7 @@ export class CompOrdenDetalleComponent implements OnInit {
 
   ngOnInit(): void {
 
-    // console.log('orden detalle', this.orden);
+    console.log('orden detalle', this.orden);
     // this.getEstadoPedido();
     // this.isTieneRepartidor = this.orden.repartidor ? true : false;
 
@@ -178,6 +178,7 @@ export class CompOrdenDetalleComponent implements OnInit {
       pedidos_repartidor.importe_pagar = parseFloat( pedidos_repartidor.importe_pagar ) + _importePedido;
       pedidos_repartidor.pedido_asignado_manual = this.orden.idpedido; // para reset a los demas repartidores
       pedidos_repartidor.idrepartidor = this.repartidor_selected_manual.idrepartidor;
+      pedidos_repartidor.isexpress = 0;
     } else {
       const _listPedido = [];
       _listPedido.push(this.orden.idpedido);
@@ -186,11 +187,10 @@ export class CompOrdenDetalleComponent implements OnInit {
         pedidos: _listPedido,
         importe_acumula: _importePedido.toFixed(2),
         importe_pagar: _importePedido.toFixed(2),
-        // last_id_repartidor_reasigno: _last_id_repartidor_reasigno,
         idsede: this.orden.idsede,
         idrepartidor: this.repartidor_selected_manual.idrepartidor,
-        // num_reasignaciones: _num_reasignaciones,
         pedido_asignado_manual: this.orden.idpedido,
+        isexpress: 0,
         sede_coordenadas: {
           latitude: this.orden.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.latitude,
           longitude: this.orden.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.longitude
@@ -215,6 +215,15 @@ export class CompOrdenDetalleComponent implements OnInit {
     });
 
 
+  }
+
+  redirectWhatsApp() {
+    const _link = `https://api.whatsapp.com/send?phone=51${this.orden.json_datos_delivery.p_header.arrDatosDelivery.telefono}`;
+    window.open(_link, '_blank');
+  }
+
+  callPhone() {
+    window.open(`tel:${this.orden.json_datos_delivery.p_header.arrDatosDelivery.telefono}`);
   }
 
   cerrarDetalles(val: boolean) {

@@ -4,7 +4,7 @@
         <div>
             <p class="fw-600">Pedido #{{orden.idpedido}}  <span *ngIf="orden.json_datos_delivery.p_header.isCliente === 1" class="badge badge-success">
                 APP
-            </span>           </p>           
+            </span></p>           
             <div class="fs-13">
 
                 <ng-container *ngIf="orden.isClientePasaRecoger; else elseConRepartidor">
@@ -69,8 +69,7 @@
                 </ng-container>
                 <ng-template #elseTemplate>                    
                     <button class="btn btn-warning" *ngIf="repartidor_selected_manual" (click)="confirmarAsignacionManual()">Confirmar Asignacion</button>
-                </ng-template>
-                
+                </ng-template>                
             </div>
         </div>
     </div>
@@ -89,7 +88,12 @@
                 <p class="fw-600 badge" [ngClass]="{'badge-primary': orden.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 3, 'badge-info': orden.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 2, 'badge-secondary': orden.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 1}">
                     <span class="fs-15">{{orden.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.descripcion | titlecase }} </span>
                 </p>       
-                
+
+                <hr>
+                <div class="d-flex">
+                    <div matRipple class="col-6 border-right text-info" (click)="callPhone()"><i class="fa fa-phone" aria-hidden="true"></i> LLamar</div>
+                    <div matRipple class="col-6 text-info xCursor" (click)="redirectWhatsApp()"><i class="fa fa-commenting-o" aria-hidden="true"></i> Enviar Mensaje</div>
+                </div>
             </div>        
 
             <div class="fs-13 col-md-5">

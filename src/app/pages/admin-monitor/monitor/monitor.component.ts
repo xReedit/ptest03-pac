@@ -6,10 +6,14 @@ import { MatDialogConfig, MatDialog } from '@angular/material/dialog';
 import { DialogOrdenDetalleComponent } from 'src/app/componentes/dialog-orden-detalle/dialog-orden-detalle.component';
 import { UtilitariosService } from 'src/app/shared/services/utilitarios.service';
 
+
 // pdf
 import * as html2pdf from 'html2pdf.js';
 import { GoogleMap } from '@angular/google-maps';
 import { SocketService } from 'src/app/shared/services/socket.service';
+import { ClassField } from '@angular/compiler';
+import { DialogOrdenExpressDetalleComponent } from 'src/app/componentes/dialog-orden-express-detalle/dialog-orden-express-detalle.component';
+import { DeliveryEstablecimiento } from 'src/app/modelos/delivery.establecimiento';
 
 @Component({
   selector: 'app-monitor',
@@ -20,24 +24,66 @@ export class MonitorComponent implements OnInit, OnDestroy {
   // @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
 
   displayedColumnsPedidos: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'importe', 'min_transcurridos', 'min_avisa' ];
+  displayedColumnsPedidosMandados: string[] = ['num_pedido', 'ciudad', 'cliente', 'de', 'a', 'vehiculo', 'repartidor', 'descripcion', 'importe', 'min_transcurridos'];
+
   displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'por_aceptar', 'calificacion', 'efectivo_mano', 'atendidos', 'reasignado', 'online', 'ocupado'];
   displayedColumnsCliente: string[] = ['idcliente', 'cliente', 'pwa_id', 'f_registro', 'telefono', 'calificacion'];
+  displayedColumnsClienteScanQr: string[] = ['#', 'Sede', 'Canal', 'cant_total', 'imp_total'];
 
-  displayedColumnsPedidosAbona: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'importe', 'c_visa', 'c_igv', 'c_transaccion', 'c_entrega', 'neto_abonar', 'action', 'action_abonado' ];
+
+  // displayedColumnsPedidosAbona: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor'
+  // , 'importe', 'importe_debitar', 'c_visa', 'c_igv', 'c_transaccion', 'c_entrega', 'neto_abonar', 'action'
+  // , 'action_abonado' ];
+
+  displayedColumnsPedidosAbona = [
+    { def: 'num_pedido', label: 'Pedido', hide: false},
+    { def: 'comercio', label: 'Comercio', hide: false},
+    { def: 'ciudad', label: 'Ciudad', hide: false},
+    { def: 'cliente', label: 'Cliente', hide: false},
+    { def: 'repartidor', label: 'Repartidor', hide: false},
+    { def: 'importe', label: 'Imp. Transaccion', hide: false},
+    { def: 'importe_debitar', label: 'Imp. Debitar', hide: false},
+    { def: 'c_visa', label: 'c. visanet', hide: false},
+    { def: 'c_igv', label: 'c. igv', hide: false},
+    { def: 'c_transaccion', label: 'c. transaccion', hide: false},
+    { def: 'c_entrega', label: 'c. entrega', hide: false},
+    { def: 'neto_abonar', label: 'N. Abonar', hide: false},
+    { def: 'action', label: 'Liquidado', hide: false},
+    { def: 'action_abonado', label: 'Abonado', hide: false}
+  ];
+
+  displayedColumnsCalificacionComercio: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'calificacion', 'comentario', 'opciones'];
 
 
   dataPedidos = new MatTableDataSource<any>();
+  dataPedidosMandados = new MatTableDataSource<any>();
   dataPedidosAbonaMaster = new MatTableDataSource<any>();
   dataRepartidores = new MatTableDataSource<any>();
   dataClientes = new MatTableDataSource<any>();
+  dataClientesScanQr = new MatTableDataSource<any>();
   dataPedidosAbona = new MatTableDataSource<any>();
-  listPedidosPendientes: any;
+  dataCalificacionComercio = new MatTableDataSource<any>();
+  listPedidosPendientes: any = [];
   listPPendienteSocket: any;
   listFiltroOrigin: any;
   sumTotalAbona = 0;
   countPedidosAbonar = 0;
   countPedidos = 0;
   countClientes = 0;
+  countPedidosApp = 0;
+  countPedidosPagoTarjeta = 0;
+  countPedidosPagoYape = 0;
+
+  countPedidosAndroid = 0;
+  countPedidosIphone = 0;
+  countPedidosWindos = 0;
+
+  countPedidoMandados = 0;
+  lastCountPedidoMandadosNotify = 0;
+  countPedidoMandadosNotify = 0;
+  isPedidosMandadosNotify = false;
+
+  isShowPedidosExpress = false;
 
   dataFiltroAbonar = {
     por: '0', // 0 comercio 1 repartidor
@@ -59,16 +105,21 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   processLoop: any;
 
-
+  isClimaVisible = false;
+  showRepartidorMapa = false;
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild('paginatorRepartidor', {static: true}) paginatorRepartidor: MatPaginator;
   @ViewChild('paginatorCliente', {static: true}) paginatorCliente: MatPaginator;
   @ViewChild('paginatorAbona', {static: true}) paginatorAbona: MatPaginator;
+  @ViewChild('paginatorCalificacion', {static: true}) paginatorCalificacion: MatPaginator;
+  @ViewChild('paginatorClienteScanQr', {static: true}) paginatorClienteScanQr: MatPaginator;
+
   constructor(
     private crudService: CrudHttpService,
     private utilesService: UtilitariosService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private socketService: SocketService
   ) { }
 
   ngOnInit(): void {
@@ -76,9 +127,12 @@ export class MonitorComponent implements OnInit, OnDestroy {
     this.loadRepartidores();
     this.loadClientes();
 
-    this.dataPedidos.paginator = this.paginator;
+    // this.dataPedidos.paginator = this.paginator;
+
 
     this.loopLoad();
+
+    this.listenSocketMonitor();
   }
 
 
@@ -86,8 +140,64 @@ export class MonitorComponent implements OnInit, OnDestroy {
     this.processLoop = null;
   }
 
+  private listenSocketMonitor() {
+    // pedidos pendientes por aceptar
+    // this.socketService.onMonitorPedidosPendientes()
+    //   .subscribe(res => {
+    //     console.log('onMonitorPedidosPendientes', res);
+    //     this.pedidosPendietesPorAtender();
+    //   });
+
+    // notifica pedido a repartidor a espera que acepte
+    // this.socketService.onMonitorNotificaPedidoRepartidor()
+    //   .subscribe(pedidos => {
+    //     console.log('onMonitorNotificaPedidoRepartidor', pedidos);
+    //     this.refreshRepartidorPedidoPorAceptar(pedidos);
+    //   });
+
+    // notifica quita pedido repartidor por no acpetar a tiempo
+    // this.socketService.onMonitorQuitaPedidoRepartidor()
+    //   .subscribe(res => {
+    //     console.log('onMonitorQuitaPedidoRepartidor', res);
+    //     this.refreshRepartidorQuitaPedido(res);
+    //   });
+
+    // notifica repartidor online
+    this.socketService.onMonitorRepartidorOnline()
+      .subscribe(res => {
+        console.log('onMonitorRepartidorOnline', res);
+        this.loadRepartidores(false);
+      });
+
+    // notifica repartidor acepta pedido
+    this.socketService.onGetPedidoAceptadoByReparidor()
+      .subscribe(res => {
+        console.log('onGetPedidoAceptadoByReparidor', res);
+        // this.refreshRepartidorAceptaPedido(res);
+        this.loadPedidos();
+      });
+
+    this.socketService.onGetNuevoPedido()
+    .subscribe((res: any) => {
+      console.log('===== nuevo pedido =========== ', res);
+      if ( res.p_header.delivery === 1 ) {
+        this.playSound(0);
+        this.loadPedidos();
+      }
+    });
+
+    this.socketService.onGetNuevoPedidoUpdateVista()
+    .subscribe((res: any) => {
+      console.log('===== nuevo pedido update vista =========== ', res);
+      // if ( res.p_header.delivery === 1 ) {
+        this.playSound(0);
+        this.loadPedidos();
+      // }
+    });
+  }
+
   private loopLoad() {
-    this.processLoop = setInterval(() => this.loadPedidos(), 15000);
+    // this.processLoop = setInterval(() => this.loadPedidos(), 15000);
   }
 
   dateRangeSelected(range: any) {
@@ -110,17 +220,50 @@ export class MonitorComponent implements OnInit, OnDestroy {
   }
 
   loadPedidos() {
+    console.log('this.range', this.range);
     this.crudService.postFree(this.range, 'monitor', 'get-pedidos', true)
     .subscribe((res: any) => {
       console.log(res);
       this.dataPedidos.data = res.data;
       this.countPedidos = res.data.length;
+      this.countPedidosApp = 0;
+      this.countPedidosPagoTarjeta = 0;
+      this.countPedidosPagoYape = 0;
 
-      res.data.map(p => {p.json_datos_delivery = JSON.parse(p.json_datos_delivery); });
+      this.countPedidosAndroid = 0;
+      this.countPedidosIphone = 0;
+      this.countPedidosWindos = 0;
 
-      this.dataPedidos.paginator = this.paginator;
+      res.data.map(p => {
+          // quita los espacion en blanco o saltos de pagina que pueda tener el string
+          p.json_datos_delivery = p.json_datos_delivery.replace(/(\r\n|\n|\r)/g, '');
+          p.json_datos_delivery = JSON.parse(p.json_datos_delivery);
+
+        this.countPedidosApp += p.json_datos_delivery.p_header.isCliente === 1 ? 1 : 0;
+        this.countPedidosPagoTarjeta += p.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 2 ? 1 : 0;
+        this.countPedidosPagoYape += p.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 3 ? 1 : 0;
+
+        this.countPedidosAndroid += p.json_datos_delivery.p_header.systemOS === 'Android' ? 1 : 0;
+        this.countPedidosIphone += p.json_datos_delivery.p_header.systemOS === 'iOS' ? 1 : 0;
+        this.countPedidosWindos += p.json_datos_delivery.p_header.systemOS === 'Windows' ? 1 : 0;
+      });
+
+      // this.dataPedidos.paginator = this.paginator;
 
       // this.verPedidoPagosVisa();
+    });
+
+    // load pedidos mandados y express
+    this.crudService.postFree(this.range, 'monitor', 'get-pedidos-mandados', true)
+    .subscribe((resp: any) => {
+      console.log('pedidos mandados', resp);
+      this.dataPedidosMandados.data = resp.data;
+      this.countPedidoMandados = this.dataPedidosMandados.data.length;
+      // this.lastCountPedidoMandadosNotify = this.lastCountPedidoMandadosNotify > 0 ? this.lastCountPedidoMandadosNotify - this.countPedidoMandados : this.countPedidoMandados;
+
+      // this.countPedidoMandadosNotify = this.lastCountPedidoMandadosNotify;
+      this.isPedidosMandadosNotify = this.countPedidoMandados > this.countPedidoMandadosNotify;
+      this.lastCountPedidoMandadosNotify = this.countPedidoMandados;
     });
   }
 
@@ -137,14 +280,20 @@ export class MonitorComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadRepartidores() {
+  getDisplayColummsAbonado() {
+    return this.displayedColumnsPedidosAbona.filter(cd => !cd.hide).map(cd => cd.def);
+  }
+
+  loadRepartidores(alIniciar = true ) {
     this.crudService.getAll('monitor', 'get-repartidores', false, false, true)
     .subscribe((res: any) => {
       console.log(res);
       this.dataRepartidores.data = res.data;
       this.dataRepartidores.paginator = this.paginatorRepartidor;
 
-      this.pedidosPendietesPorAtender();
+      if ( alIniciar ) {
+        this.pedidosPendietesPorAtender();
+      }
     });
   }
 
@@ -157,11 +306,46 @@ export class MonitorComponent implements OnInit, OnDestroy {
       this.countClientes = res.data.length;
       this.dataClientes.paginator = this.paginatorCliente;
     });
+
+    this.loadClientesScanQr();
+  }
+
+  // sedes donde los clientes escanean los codigos qr - mozo virtual x fecha
+  loadClientesScanQr(byDate = true) {
+    const _dateSelected = byDate ? this.range : {fromDate: 0};
+    // this.crudService.getAll(_dateSelected , 'monitor', 'get-clientes-scan-qr', false, false, true)
+    this.crudService.postFree(_dateSelected, 'monitor', 'get-clientes-scan-qr', true)
+    .subscribe((res: any) => {
+      console.log(res);
+      this.dataClientesScanQr.data = res.data;
+      // this.countClientesScanQr = res.data.length;
+      this.dataClientesScanQr.paginator = this.paginatorClienteScanQr;
+    });
+
+    // this.loadCalificacionClienteToComercio();
+  }
+
+  loadCalificacionClienteToComercio() {
+    try {
+
+      this.crudService.getAll('monitor', 'get-calificaciones-comercios', false, false, true)
+      .subscribe((res: any) => {
+        console.log('get-calificaciones-comercios',  res);
+        this.dataCalificacionComercio.data = res.data.map(x => {
+          x.style_calificacion = x.calificacion_cliente < 3 ? 0 : x.calificacion_cliente === 3 ? 1 : 2;
+          x.json_datos_delivery = x.json_datos_delivery === '' ? null :  JSON.parse(x.json_datos_delivery);
+          return x;
+        });
+        // this.countClientes = res.data.length;
+        this.dataCalificacionComercio.paginator = this.paginatorCalificacion;
+      });
+    } catch (error) {
+      console.log('loadCalificacionClienteToComercio', error);
+    }
   }
 
 
   private pedidosPendietesPorAtender() {
-    this.listPedidosPendientes = [];
 
     this.crudService.getAll('monitor', 'get-pedidos-pendientes', false, false, true)
     .subscribe((res: any) => {
@@ -171,6 +355,10 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
       // console.log('_list', _list);
       this.listPPendienteSocket = res.data;
+
+      // if ( res.data.length === this.listPedidosPendientes.length ) { return; }
+
+      this.listPedidosPendientes = [];
 
       res.data
       .map(p => {
@@ -198,7 +386,9 @@ export class MonitorComponent implements OnInit, OnDestroy {
     };
 
     this.crudService.postFree(_dataSend, 'monitor', 'set-reset-repartidor', true)
-    .subscribe(res => console.log(res));
+    .subscribe(res => {
+      repartidor.pedidos_reasignados = 0;
+    });
   }
 
   resetLiberarRepartidor(repartidor: any) {
@@ -209,10 +399,15 @@ export class MonitorComponent implements OnInit, OnDestroy {
     };
 
     this.crudService.postFree(_dataSend, 'monitor', 'set-liberar-repartidor', true)
-    .subscribe(res => console.log(res));
+    .subscribe(res => {
+      repartidor.ocupado = 0;
+      repartidor.pedido_por_aceptar = null;
+      repartidor._flag_paso_pedido = 0;
+    });
   }
 
   verPedido(orden: any) {
+    console.log('orden', orden);
     const _dialogConfig = new MatDialogConfig();
 
     // marcador para que no cierrre como repartidor propio en orden detalle.
@@ -231,6 +426,25 @@ export class MonitorComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(DialogOrdenDetalleComponent, _dialogConfig);
   }
 
+  verPedidoExpress(orden: any) {
+    const _dialogConfig = new MatDialogConfig();
+
+    // marcador para que no cierrre como repartidor propio en orden detalle.
+    orden.isRepartidorRed = true;
+
+    _dialogConfig.disableClose = true;
+    _dialogConfig.hasBackdrop = true;
+    _dialogConfig.width = '700px';
+    _dialogConfig.panelClass = ['my-dialog-orden-detalle', 'my-dialog-scrool'];
+    _dialogConfig.data = {
+      laOrden: orden
+    };
+
+    // console.log('orden openDialogOrden', orden);
+    // this.pedidoRepartidorService.setPedidoSelect(orden);
+    const dialogRef = this.dialog.open(DialogOrdenExpressDetalleComponent, _dialogConfig);
+  }
+
 
 
 
@@ -243,13 +457,18 @@ export class MonitorComponent implements OnInit, OnDestroy {
     let importeEntrega: any;
     let importeTotal = 0;
     let _sutotales: any;
+    let canal_consumo = '';
+    let _establecimiento: DeliveryEstablecimiento;
+    let costoDelivery = 0;
 
     this.listComercioPagar = [];
     this.listRepartidoresPagar = [];
 
 
+    console.log('this.dataPedidosAbonaMaster.data', this.dataPedidosAbonaMaster.data);
     const _dataTpm = this.dataPedidosAbonaMaster.data
-      .filter(p => p.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 2)
+      // .filter(p => p.json_datos_delivery.p_header.arrDatosDelivery.metodoPago)
+      // .filter(p => p.json_datos_delivery.p_header.arrDatosDelivery.metodoPago.idtipo_pago === 2)
       .map(p => {
         this.countPedidosAbonar ++;
         this.sumTotalAbona +=  parseFloat(p.total_r);
@@ -257,18 +476,37 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
         // totales
         // sub total
+
+        // canal de consumo
+        canal_consumo = p.json_datos_delivery.p_header.delivery === 1 ? 'Delivery' : p.json_datos_delivery.p_header.solo_llevar === 1 ? 'LLevar' : 'Local';
+        p.canal_consumo = canal_consumo;
+        console.log('p.canal_consumo', p.canal_consumo);
+
+        // si es local o llevar entonces no tiene establecimiento grabado
+        if ( canal_consumo !== 'Delivery' ) {
+          _establecimiento = new DeliveryEstablecimiento;
+          _establecimiento.idsede = p.idsede;
+          _establecimiento.idorg = p.idorg;
+          _establecimiento.nombre = p.nom_sede;
+          _establecimiento.ciudad = p.ciudad_sede;
+          p.json_datos_delivery.p_header.arrDatosDelivery.establecimiento = _establecimiento;
+        } else {
+          costoDelivery = p.json_datos_delivery.p_header.arrDatosDelivery.costoTotalDelivery;
+        }
+
+
         _sutotales = p.json_datos_delivery.p_subtotales;
         importePropina = _sutotales.filter(s => s.id === -3)[0];
         importePropina = importePropina ? parseFloat(importePropina.importe) : 0;
 
         importeEntrega = _sutotales.filter(s => s.id === -2)[0];
-        importeEntrega = importeEntrega ? parseFloat(importeEntrega.importe) : p.json_datos_delivery.p_header.arrDatosDelivery.costoTotalDelivery;
+        importeEntrega = importeEntrega ? parseFloat(importeEntrega.importe) : costoDelivery;
 
         importeTotal = parseFloat(_sutotales[_sutotales.length - 1]. importe);
 
 
 
-        if ( p.pwa_delivery_servicio_propio === 0 ||  p.flag_solicita_repartidor_papaya === 1 ) {
+        if ( p.idrepartidor ) {
           p.pp_propina = importePropina;
           p.pp_entrega = importeEntrega;
         } else {
@@ -276,17 +514,9 @@ export class MonitorComponent implements OnInit, OnDestroy {
           p.pp_entrega = 0;
           importePropina = 0;
           importeEntrega = 0;
-          // p.pp_repartidor = 0;
-          // p.pp_comercio = importeTotal;
-          // p.pp_arr = {
-          //   visa: 0,
-          //   igv: 0,
-          //   importe_restar: 0,
-          //   total: importeTotal
-          // };
         }
-
         p.pp_repartidor = importePropina + importeEntrega;
+        p.total_debitar = importeTotal - p.pp_repartidor;
         p.pp_comercio = importeTotal - p.pp_repartidor;
         p.pp_arr = this.calcImportePagar(p.pp_comercio);
 
@@ -305,7 +535,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   }
 
   calcImportePagar(importe: number): any {
-    const comisionVisa = 0.0399;
+    const comisionVisa = 0.0346; // 0.0399;
     const comisionFija = 0.51;
     const comisionTransaccion = 0.19; // c. papaya
 
@@ -435,6 +665,10 @@ export class MonitorComponent implements OnInit, OnDestroy {
     return this.dataPedidosAbona.data.map(t => parseFloat(t.total_r)).reduce((acc, value) => acc + value, 0);
   }
 
+  getTotalCostTotalDebitar() {
+    return this.dataPedidosAbona.data.map(t => parseFloat(t.total_debitar)).reduce((acc, value) => acc + value, 0);
+  }
+
   getTotalCostVisa() {
     return this.dataPedidosAbona.data.map(t => parseFloat(t.pp_arr.visa)).reduce((acc, value) => acc + value, 0);
   }
@@ -464,6 +698,12 @@ export class MonitorComponent implements OnInit, OnDestroy {
   }
 
   exportPdf() {
+
+    // ocultar columns
+    this.displayedColumnsPedidosAbona[4].hide = true; // repartidor
+    this.displayedColumnsPedidosAbona[5].hide = true; // importe total
+    this.displayedColumnsPedidosAbona[10].hide = true; // comision repartidor
+
     const opt = {
       margin:       1,
       filename:     'resumen.pdf',
@@ -474,6 +714,63 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
     const element = document.getElementById('element-to-print');
     html2pdf().set(opt).from(element).save();
+
+
+    setTimeout(() => {
+      // ocultar columns
+    this.displayedColumnsPedidosAbona[4].hide = false; // repartidor
+    this.displayedColumnsPedidosAbona[5].hide = false; // importe total
+    this.displayedColumnsPedidosAbona[10].hide = false; // comision repartidor
+    }, 2000);
+  }
+
+
+  // refresh vista repartidor pedido por aceptar
+  private refreshRepartidorPedidoPorAceptar( pedido ) {
+    const _repartidor = this.dataRepartidores.data.filter( r => r.idrepartidor === pedido[0].idrepartidor )[0];
+    const _pedidoInList = this.listPedidosPendientes.filter( p => p.pedido === pedido[1].pedidos[0])[0];
+
+    _repartidor.nom_sede = _pedidoInList.elpedido.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.nombre;
+    _repartidor.pedido_por_aceptar = pedido[1];
+    _repartidor.r_idpedido = _pedidoInList.pedido;
+    _repartidor.flag_paso_pedido = _pedidoInList.pedido;
+    _repartidor.t_transcurrido = _pedidoInList.min_transcurridos;
+  }
+
+  private refreshRepartidorQuitaPedido( idrepartidor ) {
+    const _repartidor = this.dataRepartidores.data.filter( r => r.idrepartidor === idrepartidor )[0];
+    _repartidor.pedido_por_aceptar = null;
+    _repartidor.r_idpedido = null;
+    _repartidor.flag_paso_pedido = 0;
+    _repartidor.t_transcurrido = null;
+  }
+
+  private refreshRepartidorAceptaPedido( pedido ) {
+    const _repartidor = this.dataRepartidores.data.filter( r => r.idrepartidor === pedido[0].idrepartidor )[0];
+    _repartidor.flag_paso_pedido = 0;
+    _repartidor.ocupado = 1;
+  }
+
+  cerrarClima() {
+    this.isClimaVisible = !this.isClimaVisible;
+  }
+
+  public playSound(id: number) {
+    let nameSound = '';
+    switch (id) {
+      case 0: // notificacion pedido
+        nameSound = 'notifica-pedido.mp3';
+        break;
+    }
+
+    this.emitSound(nameSound);
+  }
+
+  private emitSound(name: string) {
+    const audio = new Audio();
+    audio.src = `./assets/audio/${name}`;
+    audio.load();
+    audio.play();
   }
 
 }

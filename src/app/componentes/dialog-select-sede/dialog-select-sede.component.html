@@ -1,0 +1,23 @@
+<div class="p-3 div-dialog">
+    <mat-form-field class="w-100">        
+        <input matInput placeholder="Buscar..." (keyup)="buscar(txtBuscar.value)" #txtBuscar>
+    </mat-form-field>
+    <div class="div-list">
+        <ng-container *ngIf="loading; else elseTemplate">
+            <i class="fa fa-spinner fa-2x"></i>
+        </ng-container>
+        <ng-template #elseTemplate>        
+            <table class="w-100">
+                <thead>
+                    <th>Ciudad</th>
+                    <th>Comercio</th>
+                </thead>
+                <tr *ngFor="let item of listSede" class="xCursor xrow border-bottom" (click)="selectedSede(item)">
+                    <td class="fs-12 p-2">{{ item.ciudad }}</td>
+                    <td class="fs-12 p-2">{{ item.nombre }}</td>
+                </tr>
+            </table>
+        </ng-template>
+    </div>
+    
+</div>

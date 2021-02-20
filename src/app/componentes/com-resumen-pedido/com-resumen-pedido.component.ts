@@ -18,7 +18,7 @@ export class ComResumenPedidoComponent implements OnInit {
 
   ngOnInit(): void {
 
-    //  console.log('elPedido', this.elPedido);
+     console.log('elPedido', this.elPedido);
   }
 
 

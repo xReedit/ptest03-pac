@@ -1,9 +1,40 @@
  <!-- body -->
+ <mat-drawer-container class="example-container">
+ <mat-drawer #drawer class="example-sidenav" mode="over" position="start" [opened]="showPanelRigth" (closedStart)="showPanelRigth=false">
+    <div style="min-width: 250px;">
+        <div class="p-3 border-bottom">
+          <div class="w-100 text-center">
+            <img src="assets/icons/icon-72x72.png">
+            <p class="pt-1 fw-600 fs-12 text-secondary m-0">Papaya Express</p>
+            <p class="pt-1 fw-100 fs-11 text-secondary m-0">papaya.com.pe</p>
+          </div>            
+        </div>                
+        <div class="p-3 border-bottom w-100" (click)="drawer.toggle()">
+          <span class="fw-600 fs-13"><i class="fa fa-arrow-left pr-2"></i>Opciones</span>
+        </div>
+        <div class="fs-13">
+            <div matRipple class="border-bottom p-3 xCursor" (click)="clickTab(0); drawer.toggle();">
+              Cambiar comisiones
+            </div>            
+            <div matRipple class="border-bottom p-3 xCursor d-flex justify-content-between" [routerLink]="['../']" (click)="cerrarAllSession()">
+              <div>
+                Cerrar Session
+              </div>
+              <div>
+                  <i class="fa fa-key"></i>
+              </div>
+            </div>            
+        </div>
+    </div>
+
+</mat-drawer>
+
  <div class="animated fadeIn">
     <!-- header -->
     <!-- (openMenuLateral)="showPanelLeft=$event" -->
-    <app-tool-bar-repartidor></app-tool-bar-repartidor>
+    <app-tool-bar-repartidor (openMenuLateral)="showPanelRigth=true"></app-tool-bar-repartidor>
     <div class="content-body">
         <router-outlet></router-outlet>
     </div>
 </div>
+</mat-drawer-container>

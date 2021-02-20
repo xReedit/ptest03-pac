@@ -41,6 +41,13 @@ import { CompSelectRepartidorComponent } from './comp-select-repartidor/comp-sel
 import { DialogPagoSedeComponent } from './dialog-pago-sede/dialog-pago-sede.component';
 import { GoogleMapsModule } from '@angular/google-maps';
 import { MapaRepartidoresPedidosComponent } from './mapa-repartidores-pedidos/mapa-repartidores-pedidos.component';
+import { DialogInfoSedeComponent } from './dialog-info-sede/dialog-info-sede.component';
+import { DialogSelectSedeComponent } from './dialog-select-sede/dialog-select-sede.component';
+import { DialogSedeDescuentosComponent } from './dialog-sede-descuentos/dialog-sede-descuentos.component';
+import { CompClimaComponent } from './comp-clima/comp-clima.component';
+import { CompOrdeExpressComponent } from './comp-orde-express/comp-orde-express.component';
+import { DialogOrdenExpressDetalleComponent } from './dialog-orden-express-detalle/dialog-orden-express-detalle.component';
+import { DialogChangeComisionComponent } from './dialog-change-comision/dialog-change-comision.component';
 // import { DialogSelectDireccionComponent } from './dialog-select-direccion/dialog-select-direccion.component';
 
 @NgModule({
@@ -76,7 +83,14 @@ import { MapaRepartidoresPedidosComponent } from './mapa-repartidores-pedidos/ma
     ComDateFilterComponent,
     CompSelectRepartidorComponent,
     DialogPagoSedeComponent,
-    MapaRepartidoresPedidosComponent
+    MapaRepartidoresPedidosComponent,
+    DialogInfoSedeComponent,
+    DialogSelectSedeComponent,
+    DialogSedeDescuentosComponent,
+    CompClimaComponent,
+    CompOrdeExpressComponent,
+    DialogOrdenExpressDetalleComponent,
+    DialogChangeComisionComponent
     // DialogSelectDireccionComponent,
     // DialogUbicacionComponent
   ],
@@ -88,7 +102,7 @@ import { MapaRepartidoresPedidosComponent } from './mapa-repartidores-pedidos/ma
     GoogleMapsModule,
     NgxMatDrpModule,
     AgmCoreModule.forRoot({
-      apiKey: 'AIzaSyAknWQFyVH1RpR2OAL0vRTHTapaIpfKSqo',
+      apiKey: 'AIzaSyAr1MuAvI3b3nvg_WONnOMLf7aLjPm3lC4',
       libraries: ['places']
     }),
     StarRatingModule.forRoot()
@@ -121,7 +135,14 @@ import { MapaRepartidoresPedidosComponent } from './mapa-repartidores-pedidos/ma
     ComDateFilterComponent,
     CompSelectRepartidorComponent,
     DialogPagoSedeComponent,
-    MapaRepartidoresPedidosComponent
+    MapaRepartidoresPedidosComponent,
+    DialogInfoSedeComponent,
+    DialogSelectSedeComponent,
+    DialogSedeDescuentosComponent,
+    CompClimaComponent,
+    CompOrdeExpressComponent,
+    DialogOrdenExpressDetalleComponent,
+    DialogChangeComisionComponent
   ],
 
   // entryComponents: [

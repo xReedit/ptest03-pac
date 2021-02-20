@@ -7,10 +7,11 @@ import { CoreModule } from 'src/app/core/core.module';
 import { ComponentesModule } from 'src/app/componentes/componentes.module';
 import { MaterialModule } from 'src/app/core/material/material.module';
 import { ComerciosComponent } from './comercios/comercios.component';
+import { ComercioResumenPagoComponent } from './comercio-resumen-pago/comercio-resumen-pago.component';
 
 
 @NgModule({
-  declarations: [MainComponent, MonitorComponent, ComerciosComponent],
+  declarations: [MainComponent, MonitorComponent, ComerciosComponent, ComercioResumenPagoComponent],
   imports: [
     CommonModule,
     AdminMonitorRoutingModule,
