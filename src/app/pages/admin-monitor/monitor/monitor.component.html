@@ -7,26 +7,41 @@
                 <div class="d-flex justify-content-between">
                     <div class="">
                         <h6>Pedidos Total {{ countPedidos }}</h6>
-                        <div class="d-flex"> 
+                        <div class="d-flex align-items-lg-end"> 
                             <div class="d-flex">
-                                <p class="badge badge-success"> APP {{ countPedidosApp }}</p>
-                                <p class="badge badge-info ml-2"> TARJETA {{ countPedidosPagoTarjeta }}</p>
-                                <p class="badge badge-primary ml-2"> YAPE {{ countPedidosPagoYape }}</p>
+                                <div>
+                                    <div class="d-flex">
+                                        <p class="badge badge-success"> APP {{ countPedidosApp }}</p>
+                                        <p class="badge badge-info ml-2"> TARJETA {{ countPedidosPagoTarjeta }}</p>
+                                    </div>
+                                    <div class="d-flex align-items-lg-end">
+                                        <p class="badge badge-primary"> YAPE {{ countPedidosPagoYape }}</p>
+                                        <!-- sistemas operativos -->
+                                        <div>
+                                            <p class="badge badge-success ml-2"> <i class="fa fa-android"></i> {{ countPedidosAndroid }}</p>
+                                            <p class="badge badge-warning ml-2"> <i class="fa fa-apple"></i> {{ countPedidosIphone }}</p>
+                                            <p class="badge badge-secondary ml-2"> <i class="fa fa-windows"></i> {{ countPedidosWindos }}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-
-                            <!-- sistemas operativos -->
-                            <div class="d-flex">
-                                <p class="badge badge-success ml-2"> <i class="fa fa-android"></i> {{ countPedidosAndroid }}</p>
-                                <p class="badge badge-warning ml-2"> <i class="fa fa-apple"></i> {{ countPedidosIphone }}</p>
-                                <p class="badge badge-secondary ml-2"> <i class="fa fa-windows"></i> {{ countPedidosWindos }}</p>
-                            </div>
+                            
 
                             <!-- pedidos mandados -->
-                            <div class="d-flex xCursor">
-                                <p class="badge badge-success ml-2 animated" [ngClass]="{'shakeX': isPedidosMandadosNotify}" (click)="isShowPedidosExpress = true;"> <i class="fa fa-motorcycle"></i> 
-                                    Express
-                                    <span class="pl-2"> {{ countPedidoMandados }} </span>
-                                </p>                                
+                            <div class="d-flex xCursor w-25">
+                                <div>
+                                    <p class="badge badge-success ml-2 animated" [ngClass]="{'shakeX': isPedidosMandadosNotify}" (click)="isShowPedidosExpress = true;"> <i class="fa fa-motorcycle"></i> 
+                                        Express
+                                        <span class="pl-2"> {{ countPedidoMandados }} </span>
+                                    </p>                                
+                                </div>
+                                <div>
+                                    <p class="badge badge-warning ml-2 animated" [ngClass]="{'shakeX': isPedidosMandadosNotify}" (click)="isShowPedidoRetirosEntregados = true;"> 
+                                        <i class="fa fa-credit-card"></i> 
+                                        Cash Atm 
+                                        <span class="pl-2"> {{ countPedidoRetirosAtm }} </span>
+                                    </p>                                
+                                </div>
                             </div>
                         </div>
                     </div>                    
@@ -39,7 +54,146 @@
 
                 <hr>
 
-                <div *ngIf="!isShowPedidosExpress">
+                <div *ngIf="countPedidoRetirosAtm > 0 && !isShowPedidoRetirosEntregados">                    
+                    <table class="table-model-1 w-100" mat-table [dataSource]="dataRetirosCashAtm">
+                        <ng-container matColumnDef="#">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p class="fw-600"> 
+                                    {{ element.idatm_retiros}} 
+                                    <span class="fw-600 fs-15 badge badge-warning"> Cash Atm</span>
+                                </p>                            
+                                <p>{{ element.fecha_hora}}</p>                                                                
+                            </td>
+                        </ng-container>
+                        
+                        <ng-container matColumnDef="cliente">
+                            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p class="fw-600">{{ element.json_entrega.cliente.nombres}}</p>
+                                <p>{{ element.json_entrega.cliente.telefono}}</p>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ciudad">
+                            <th mat-header-cell *matHeaderCellDef>Ciudad</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.json_entrega.direccion.ciudad}}</p>                                                                         
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="direccion">
+                            <th mat-header-cell *matHeaderCellDef>Direccion</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.json_entrega.direccion.direccion}}</p>                                
+                                <p>{{ element.json_entrega.direccion.referencia}}</p>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="importe">
+                            <th mat-header-cell *matHeaderCellDef align="right">Importe</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <p class="fw-600">{{ element.importe_solicita | number : '.2'}}</p>                                
+                                <p class="badge badge-info">Tarjeta</p>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="repartidor">
+                            <th mat-header-cell *matHeaderCellDef>Repartidor</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p class="fw-600 text-success">{{ element.nom_repartidor}}</p>                                                                
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="tiempo">
+                            <th mat-header-cell *matHeaderCellDef align="right">M. Transcurridos</th>
+                            <td mat-cell *matCellDef="let element" align="right">                                
+                                <ng-container *ngIf="element.pwa_estado === 'E'; else elseTemplate">
+                                    <span class="fw-600 text-success">Entregado</span>
+                                </ng-container>
+                                <ng-template #elseTemplate>
+                                    <span class="fw-600">En proceso {{ element.min_transcurridos}} min</span>
+                                </ng-template>                                                         
+                                <button class="p-1" (click)="verPedidoRetiroAtm(element)">Ver pedido</button>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsRetiroCashAtm"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumnsRetiroCashAtm;"></tr>
+                    </table>
+                    <br>
+                </div>
+
+                <!-- pedidos retiros cash entregados -->
+
+                <div *ngIf="isShowPedidoRetirosEntregados">  
+                    <button mat-flat-button color="primary" (click)="isShowPedidoRetirosEntregados = false;"><i class="fa fa-arrow-left"></i>   Atras</button>
+
+                    <table class="table-model-1 w-100" mat-table [dataSource]="dataRetirosCashAtmEntregados">
+                        <ng-container matColumnDef="#">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p class="fw-600"> 
+                                    {{ element.idatm_retiros}} 
+                                    <span class="fw-600 fs-15 badge badge-warning"> Cash Atm</span>
+                                </p>                            
+                                <p>{{ element.fecha_hora}}</p>                                                                
+                            </td>
+                        </ng-container>
+                        
+                        <ng-container matColumnDef="cliente">
+                            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p class="fw-600">{{ element.json_entrega.cliente.nombres}}</p>
+                                <p>{{ element.json_entrega.cliente.telefono}}</p>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ciudad">
+                            <th mat-header-cell *matHeaderCellDef>Ciudad</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.json_entrega.direccion.ciudad}}</p>                                                                         
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="direccion">
+                            <th mat-header-cell *matHeaderCellDef>Direccion</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.json_entrega.direccion.direccion}}</p>                                
+                                <p>{{ element.json_entrega.direccion.referencia}}</p>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="importe">
+                            <th mat-header-cell *matHeaderCellDef align="right">Importe</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <p class="fw-600">{{ element.importe_solicita | number : '.2'}}</p>                                
+                                <p class="badge badge-info">Tarjeta</p>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="repartidor">
+                            <th mat-header-cell *matHeaderCellDef>Repartidor</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p class="fw-600 text-success">{{ element.nom_repartidor}}</p>                                                                
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="tiempo">
+                            <th mat-header-cell *matHeaderCellDef align="right">M. Transcurridos</th>
+                            <td mat-cell *matCellDef="let element" align="right">                                
+                                <span class="fw-600 text-success">Entregado</span>                                
+                                <!-- <button class="p-1" (click)="verPedidoRetiroAtm(element)">Ver pedido</button> -->
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsRetiroCashAtm"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumnsRetiroCashAtm;"></tr>
+                    </table>
+                    <br>
+                </div>
+                
+                <div *ngIf="!isShowPedidosExpress && !isShowPedidoRetirosEntregados">
 
                 
 
@@ -562,7 +716,16 @@
                 <hr>
 
                 <!-- calificaciones a los comercios -->
-                <h4>Calificaciones de los clientes a los comercios</h4>
+                <h4>Calificaciones de los clientes a los comercios  
+                    <span> {{ dataCalificacionComercio.data.length }} </span>
+                </h4>
+                <div>
+                    <button  class="btn btn-info mr-2"  (click)="loadCalificacionClienteToComercio()">
+                        Actualizar Calificaciones
+
+                        <span *ngIf="dataCalificacionComercio.data.length === 0"> <i class="fa fa-spinner fa-spin"></i> </span>
+                    </button>
+                </div>
 
                 <table *ngIf="dataCalificacionComercio" class="table-model-1 w-100" mat-table [dataSource]="dataCalificacionComercio">      
     
@@ -575,7 +738,7 @@
                                 <span *ngIf="element.pwa_estado !== 'P'">Visto</span>
                                 <span *ngIf="element.pwa_estado === 'P'">No visto</span>
                             </span>
-                            <span *ngIf="element.json_datos_delivery.p_header?.arrDatosDelivery.pasoRecoger" class="fw-600 badge badge-warning" >
+                            <span *ngIf="element?.json_datos_delivery?.p_header?.arrDatosDelivery.pasoRecoger" class="fw-600 badge badge-warning" >
                                 <span><i class="fa fa-user"></i>Recoje cliente</span>
                             </span>
                         </td>
@@ -587,13 +750,13 @@
                             <p>{{ element.nom_sede}}</p>                                          
                             <p>{{ element.dir_sede}}</p>
                             <div class="d-flex align-items-center">
-                                <p *ngIf="element.json_datos_delivery.p_header?.isCliente === 1" class="badge badge-success mr-2">
+                                <p *ngIf="element?.json_datos_delivery?.p_header?.isCliente === 1" class="badge badge-success mr-2">
                                     APP
                                 </p>   
                                 <div>
-                                    <p class="text-success" *ngIf="element.json_datos_delivery.p_header?.systemOS === 'Android'"><i class="fa fa-android"></i></p>                                              
-                                    <p class="text-warning" *ngIf="element.json_datos_delivery.p_header?.systemOS === 'iOS'"><i class="fa fa-apple"></i></p>
-                                    <p class="text-secondary" *ngIf="element.json_datos_delivery.p_header?.systemOS === 'Windows'"><i class="fa fa-windows"></i></p>
+                                    <p class="text-success" *ngIf="element?.json_datos_delivery?.p_header?.systemOS === 'Android'"><i class="fa fa-android"></i></p>                                              
+                                    <p class="text-warning" *ngIf="element?.json_datos_delivery?.p_header?.systemOS === 'iOS'"><i class="fa fa-apple"></i></p>
+                                    <p class="text-secondary" *ngIf="element?.json_datos_delivery?.p_header?.systemOS === 'Windows'"><i class="fa fa-windows"></i></p>
                                 </div>
                             </div>                                                                                              
                         </td>

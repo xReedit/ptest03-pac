@@ -29,6 +29,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'por_aceptar', 'calificacion', 'efectivo_mano', 'atendidos', 'reasignado', 'online', 'ocupado'];
   displayedColumnsCliente: string[] = ['idcliente', 'cliente', 'pwa_id', 'f_registro', 'telefono', 'calificacion'];
   displayedColumnsClienteScanQr: string[] = ['#', 'Sede', 'Canal', 'cant_total', 'imp_total'];
+  displayedColumnsRetiroCashAtm: string[] = ['#', 'cliente', 'ciudad', 'direccion', 'importe', 'repartidor', 'tiempo'];
 
 
   // displayedColumnsPedidosAbona: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor'
@@ -63,9 +64,12 @@ export class MonitorComponent implements OnInit, OnDestroy {
   dataClientesScanQr = new MatTableDataSource<any>();
   dataPedidosAbona = new MatTableDataSource<any>();
   dataCalificacionComercio = new MatTableDataSource<any>();
+  dataRetirosCashAtm = new MatTableDataSource<any>();
+  dataRetirosCashAtmEntregados = new MatTableDataSource<any>();
   listPedidosPendientes: any = [];
   listPPendienteSocket: any;
   listFiltroOrigin: any;
+  listPedidosRetirosCashAtmMaster: any;
   sumTotalAbona = 0;
   countPedidosAbonar = 0;
   countPedidos = 0;
@@ -73,6 +77,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   countPedidosApp = 0;
   countPedidosPagoTarjeta = 0;
   countPedidosPagoYape = 0;
+  countPedidoRetirosAtm = 0;
 
   countPedidosAndroid = 0;
   countPedidosIphone = 0;
@@ -84,6 +89,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   isPedidosMandadosNotify = false;
 
   isShowPedidosExpress = false;
+  isShowPedidoRetirosEntregados = false;
 
   dataFiltroAbonar = {
     por: '0', // 0 comercio 1 repartidor
@@ -108,6 +114,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   isClimaVisible = false;
   showRepartidorMapa = false;
 
+
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild('paginatorRepartidor', {static: true}) paginatorRepartidor: MatPaginator;
   @ViewChild('paginatorCliente', {static: true}) paginatorCliente: MatPaginator;
@@ -126,6 +133,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
     this.loadPedidos();
     this.loadRepartidores();
     this.loadClientes();
+
+
 
     // this.dataPedidos.paginator = this.paginator;
 
@@ -194,6 +203,15 @@ export class MonitorComponent implements OnInit, OnDestroy {
         this.loadPedidos();
       // }
     });
+
+    this.socketService.onGetNuevoPedidoRetiroCashAtm()
+    .subscribe((res: any) => {
+      console.log('===== nuevo retiro cash atm =========== ', res);
+      // if ( res.p_header.delivery === 1 ) {
+        this.playSound(2);
+        this.loadRetiroCashAtm();
+      // }
+    });
   }
 
   private loopLoad() {
@@ -217,6 +235,17 @@ export class MonitorComponent implements OnInit, OnDestroy {
     this.rangoAbonoFecha.hasta = this.utilesService.getDateString(range.toDate);
 
     this.loadPedidosAbonos();
+  }
+
+  loadRetiroCashAtm() {
+    this.crudService.postFree(this.range, 'monitor', 'get-retiros-cash-atm', true)
+    .subscribe((res: any) => {
+      console.log('pedido retiro cash atm', res);
+      this.listPedidosRetirosCashAtmMaster = res.data;
+      this.dataRetirosCashAtm.data = this.listPedidosRetirosCashAtmMaster.filter(x => x.pwa_estado === 'P');
+      this.dataRetirosCashAtmEntregados = this.listPedidosRetirosCashAtmMaster.filter(x => x.pwa_estado === 'E');
+      this.countPedidoRetirosAtm = this.listPedidosRetirosCashAtmMaster.length;
+    });
   }
 
   loadPedidos() {
@@ -265,6 +294,9 @@ export class MonitorComponent implements OnInit, OnDestroy {
       this.isPedidosMandadosNotify = this.countPedidoMandados > this.countPedidoMandadosNotify;
       this.lastCountPedidoMandadosNotify = this.countPedidoMandados;
     });
+
+    // atm retiros cash
+    this.loadRetiroCashAtm();
   }
 
   loadPedidosAbonos() {
@@ -326,6 +358,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   }
 
   loadCalificacionClienteToComercio() {
+    this.dataCalificacionComercio.data = null ;
     try {
 
       this.crudService.getAll('monitor', 'get-calificaciones-comercios', false, false, true)
@@ -438,6 +471,27 @@ export class MonitorComponent implements OnInit, OnDestroy {
     _dialogConfig.panelClass = ['my-dialog-orden-detalle', 'my-dialog-scrool'];
     _dialogConfig.data = {
       laOrden: orden
+    };
+
+    // console.log('orden openDialogOrden', orden);
+    // this.pedidoRepartidorService.setPedidoSelect(orden);
+    const dialogRef = this.dialog.open(DialogOrdenExpressDetalleComponent, _dialogConfig);
+  }
+
+  verPedidoRetiroAtm(orden: any) {
+    console.log('ver pedido atm');
+    const _dialogConfig = new MatDialogConfig();
+
+    // marcador para que no cierrre como repartidor propio en orden detalle.
+    orden.isRepartidorRed = true;
+
+    _dialogConfig.disableClose = true;
+    _dialogConfig.hasBackdrop = true;
+    _dialogConfig.width = '700px';
+    _dialogConfig.panelClass = ['my-dialog-orden-detalle', 'my-dialog-scrool'];
+    _dialogConfig.data = {
+      laOrden: orden,
+      from: 'cash-atm'
     };
 
     // console.log('orden openDialogOrden', orden);

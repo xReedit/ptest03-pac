@@ -48,6 +48,7 @@ import { CompClimaComponent } from './comp-clima/comp-clima.component';
 import { CompOrdeExpressComponent } from './comp-orde-express/comp-orde-express.component';
 import { DialogOrdenExpressDetalleComponent } from './dialog-orden-express-detalle/dialog-orden-express-detalle.component';
 import { DialogChangeComisionComponent } from './dialog-change-comision/dialog-change-comision.component';
+import { CompOrdenRetiroCashComponent } from './comp-orden-retiro-cash/comp-orden-retiro-cash.component';
 // import { DialogSelectDireccionComponent } from './dialog-select-direccion/dialog-select-direccion.component';
 
 @NgModule({
@@ -90,7 +91,8 @@ import { DialogChangeComisionComponent } from './dialog-change-comision/dialog-c
     CompClimaComponent,
     CompOrdeExpressComponent,
     DialogOrdenExpressDetalleComponent,
-    DialogChangeComisionComponent
+    DialogChangeComisionComponent,
+    CompOrdenRetiroCashComponent
     // DialogSelectDireccionComponent,
     // DialogUbicacionComponent
   ],
@@ -142,7 +144,8 @@ import { DialogChangeComisionComponent } from './dialog-change-comision/dialog-c
     CompClimaComponent,
     CompOrdeExpressComponent,
     DialogOrdenExpressDetalleComponent,
-    DialogChangeComisionComponent
+    DialogChangeComisionComponent,
+    CompOrdenRetiroCashComponent
   ],
 
   // entryComponents: [

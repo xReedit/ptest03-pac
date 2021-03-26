@@ -8,11 +8,17 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 })
 export class DialogOrdenExpressDetalleComponent implements OnInit {
   laOrden: any;
+
+  isFromVistaSow = '';
   constructor(
     private dialogRef: MatDialogRef<DialogOrdenExpressDetalleComponent>,
     @Inject(MAT_DIALOG_DATA) data: any,
   ) {
+    console.log('ver pedido atm');
     this.laOrden = data.laOrden;
+    this.isFromVistaSow = data.from;
+
+    this.isFromVistaSow = this.isFromVistaSow ? this.isFromVistaSow :  '';
   }
 
   ngOnInit(): void {

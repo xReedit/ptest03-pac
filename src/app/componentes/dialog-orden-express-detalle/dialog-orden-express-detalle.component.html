@@ -1,1 +1,7 @@
-<app-comp-orde-express [orden]="laOrden" (closeWindow)="cerrarDialog($event)"></app-comp-orde-express>
+<div *ngIf="isFromVistaSow === ''">
+    <app-comp-orde-express [orden]="laOrden" (closeWindow)="cerrarDialog($event)"></app-comp-orde-express>
+</div>
+
+<div *ngIf="isFromVistaSow === 'cash-atm'">
+    <app-comp-orden-retiro-cash [orden]="laOrden" (closeWindow)="cerrarDialog($event)"></app-comp-orden-retiro-cash>
+</div>

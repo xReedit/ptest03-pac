@@ -365,6 +365,14 @@ export class SocketService {
     });
   }
 
+  onGetNuevoPedidoRetiroCashAtm() {
+    return new Observable(observer => {
+      this.socket.on('monitor-nuevo-retiro-cash-atm', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
   ///// comercio ///// comercio
   ///// comercio ///// comercio
 

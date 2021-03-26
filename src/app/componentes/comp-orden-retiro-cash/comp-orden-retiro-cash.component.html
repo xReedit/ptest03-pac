@@ -1,0 +1,78 @@
+<div class="animated fadeIn">    
+    <div class="d-flex justify-content-between">
+        <div>
+            <p class="fw-600">Pedido Retiro Cash ATM #{{ orden.idatm_retiros }}</p>           
+
+            <!-- repartidor -->
+            <p><i class="fa fa-motorcycle" aria-hidden="true"></i> Repartidor: {{ nomRepartidor || 'No asignado' }}</p>            
+            <div>                                        
+                <p *ngIf="nomRepartidor"><i class="fa fa-phone" aria-hidden="true"></i> {{ orden.telefono_repartidor }} </p>                
+            </div>
+        </div>
+        <div>
+            <!-- boton cerrar -->
+            <div class="d-flex justify-content-between">
+                <div>
+                    <button type="button" class="btn btn-secondary" mat-dialog-close>
+                        <i class="fa fa-close"></i>                
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div *ngIf="showListRepartidores" class="w-100">
+        <!-- asignar repartidor manualmente -->
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+            <app-comp-select-repartidor (repartidorSelected)="asignarManualA($event)" [codigo_postal]="orde_codigo_postal"  [label_select]="label_comp_repartidor"></app-comp-select-repartidor>
+            <div>
+                <ng-container *ngIf="chekAsignacionManual; else elseTemplate">
+                    <i class="text-success fa fa-check fa-2x"></i>
+                </ng-container>
+                <ng-template #elseTemplate>                    
+                    <button class="btn btn-warning" *ngIf="repartidor_selected_manual" (click)="confirmarAsignacionManual()">Confirmar Asignacion</button>
+                </ng-template>
+                
+            </div>
+        </div>
+    </div>
+    <hr>
+
+    <div class="p-3">
+        <div class="row">
+            <div class="fs-13 w-100">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="fs-13 fw-600 text-secondary">Cliente: </span>
+                        <p><i class="fa fa-user"></i>  {{orden.json_entrega.cliente.nombres}}</p>
+                        <p><i class="fa fa-phone"></i> {{ orden.json_entrega.cliente.telefono }}</p>
+                        <p class="fw-600 badge badge-info">
+                            <span class="fs-15"> tarjeta </span>
+                        </p>       
+                    </div>                    
+                </div>
+                <hr>
+
+                <p class="fw-600 text-secondary">Pedido: </p>                
+                <p class="fw-600 fs-17">Retirar : S/.{{ orden.importe_solicita | number : '.2' }}</p>
+                <p>Comision de Entrega: S/. {{ orden.c_entrega | number: '.2' }}</p>
+                <p class="text-secondary">Total Transaccion: S/. {{ orden.importe_total | number: '.2' }}</p>
+                
+                <hr>
+                <p class="fw-600 text-secondary">Donde lo entregamos?: </p>                
+                <p>{{ orden.json_entrega.direccion.direccion }}</p>
+                <p>{{ orden.json_entrega.direccion.referencia }}</p>
+                <p>{{ orden.json_entrega.direccion.ciudad }}</p>
+
+                <hr>
+
+                <p class="fs-18 fw-600"> Costo de entrega: S/. {{ orden.c_entrega | number: '.2' }}</p>                
+                
+            </div>        
+
+            
+        </div>
+    </div>
+    
+</div>
