@@ -7,6 +7,7 @@ import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { DialogSelectSedeComponent } from 'src/app/componentes/dialog-select-sede/dialog-select-sede.component';
 import { DialogPagoSedeComponent } from 'src/app/componentes/dialog-pago-sede/dialog-pago-sede.component';
 import { DialogInfoSedeComponent } from 'src/app/componentes/dialog-info-sede/dialog-info-sede.component';
+import { DialogOrdenDetalleComponent } from 'src/app/componentes/dialog-orden-detalle/dialog-orden-detalle.component';
 
 @Component({
   selector: 'app-comercio-resumen-pago',
@@ -146,7 +147,7 @@ export class ComercioResumenPagoComponent implements OnInit {
         }
 
         p.pp_repartidor = importePropina + importeEntrega;
-        p.pp_subtotal = importeTotal - p.pp_repartidor;
+        p.pp_subtotal = p.pwa_delivery_atendido === 1 ? 0 : importeTotal - p.pp_repartidor;
         p.pp_comision = 0;
         p.pp_pagar = 0;
         // this.isPedidoLlevoPapaya = false;
@@ -154,7 +155,7 @@ export class ComercioResumenPagoComponent implements OnInit {
         this.countPedidosApp += p.json_datos_delivery.p_header.isCliente === 1 ? 1 : 0;
 
         if ( cobraComision || p.json_datos_delivery.p_header.isCliente === 1) {
-          p.pp_comision = p.pp_subtotal * comision_entrega;
+          p.pp_comision = p.pp_subtotal === 0 ? 0 : p.pp_subtotal * comision_entrega;
           p.pp_pagar = p.pp_subtotal - p.pp_comision;
         }
 
@@ -251,6 +252,27 @@ export class ComercioResumenPagoComponent implements OnInit {
 
   viewListDescuentos() {
     this.opView = 1;
+  }
+
+  verPedido(orden: any) {
+    console.log('orden', orden);
+    const _dialogConfig = new MatDialogConfig();
+
+    // marcador para que no cierrre como repartidor propio en orden detalle.
+    orden.isRepartidorRed = true;
+
+    _dialogConfig.disableClose = true;
+    _dialogConfig.hasBackdrop = true;
+    _dialogConfig.width = '700px';
+    _dialogConfig.panelClass = ['my-dialog-orden-detalle', 'my-dialog-scrool'];
+    _dialogConfig.data = {
+      laOrden: orden,
+      fromComercioPago: true
+    };
+
+    // console.log('orden openDialogOrden', orden);
+    // this.pedidoRepartidorService.setPedidoSelect(orden);
+    const dialogRef = this.dialog.open(DialogOrdenDetalleComponent, _dialogConfig);
   }
 
 

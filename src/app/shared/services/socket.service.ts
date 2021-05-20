@@ -373,6 +373,16 @@ export class SocketService {
     });
   }
 
+
+  // notifica que la comanda se imprimio // esto desde el print server
+  onMonitorNotificaImpresionComanda() {
+    return new Observable(observer => {
+      this.socket.on('notifica-impresion-comanda', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
   ///// comercio ///// comercio
   ///// comercio ///// comercio
 

@@ -15,20 +15,32 @@
                     <span class="text-success" [ngClass]="{'text-danger': isRepartidorPaga}">{{ descripcionComoClienteRecoge }}</span>
                 </ng-container>
                 <ng-template #elseConRepartidor>
+                    
+                    
+                        
+                        <div class="d-flex justify-content-lg-between align-items-center">
+                            <div>
+                                <p><i class="fa fa-motorcycle" aria-hidden="true"></i> Repartidor: {{ nomRepartidor || 'No asignado' }}</p>
+                                <ng-container *ngIf="isComercioPropioRepartidor; else elseTemplateNoRepartidores">
+                                    <mat-form-field *ngIf="orden.pwa_delivery_status !== '4'"> 
+                                        <mat-select [(value)]="repartidorSelected" (selectionChange)="saveRepartidor($event)">
+                                        <mat-option *ngFor="let item of listRepartidoresPropios" [value]="item.idrepartidor">{{ item.nombre }}</mat-option>                          
+                                        </mat-select>
+                                    </mat-form-field>
+                                </ng-container>
+                                <ng-template #elseTemplateNoRepartidores>                                        
+                                    <p *ngIf="nomRepartidor"><i class="fa fa-phone" aria-hidden="true"></i> {{ orden.telefono_repartidor }} </p>
+                                    <p class="text-success" [ngClass]="{'text-danger': isRepartidorPaga}">{{ descripcionComoPagaRepartidor }}</p>
+                                </ng-template>
+                            </div>
+                            <div class="ml-4" *ngIf="!showListRepartidores && !isOrdenViewFromTarjeta">
+                                <button class="btn btn-sm btn-outline-warning" (click)="cambiarReparidorAsignado()">Cambiar Repartidor</button>
+                            </div>
+                        </div>
 
-                    <p><i class="fa fa-motorcycle" aria-hidden="true"></i> Repartidor: {{ nomRepartidor || 'No asignado' }}</p>
-                    <ng-container *ngIf="isComercioPropioRepartidor; else elseTemplateNoRepartidores">
-                        <mat-form-field *ngIf="orden.pwa_delivery_status !== '4'"> 
-                            <mat-select [(value)]="repartidorSelected" (selectionChange)="saveRepartidor($event)">
-                              <mat-option *ngFor="let item of listRepartidoresPropios" [value]="item.idrepartidor">{{ item.nombre }}</mat-option>                          
-                            </mat-select>
-                          </mat-form-field>
-                    </ng-container>
-                    <ng-template #elseTemplateNoRepartidores>                                        
-                        <p *ngIf="nomRepartidor"><i class="fa fa-phone" aria-hidden="true"></i> {{ orden.telefono_repartidor }} </p>
-                        <p class="text-success" [ngClass]="{'text-danger': isRepartidorPaga}">{{ descripcionComoPagaRepartidor }}</p>
-                    </ng-template>
-
+                    
+                    
+                        
                 </ng-template>                                
 
                 
@@ -45,7 +57,29 @@
                 </div> -->
 
 
-                <div>
+                <div class="d-flex align-items-center">
+
+                    <div *ngIf="isOrdenViewFromTarjeta" class="mr-2">
+                        <ng-container *ngIf="isPedidoAnualdo; else elseTemplateDivAnularPedido">
+                            <span class="fw-600 text-danger">Pedido no atendido</span>
+                        </ng-container>
+                        <ng-template #elseTemplateDivAnularPedido>
+                            
+                            <ng-container *ngIf="!isShowBtnConfirmarAnulacion; else elseTemplateBtnAnulacion">                            
+                                <button class="btn btn-sm btn-danger" title="Marcar como pedido no atendido" (click)="isShowBtnConfirmarAnulacion = true;"><i class="fa fa-trash"></i></button>
+                            </ng-container>
+                            <ng-template #elseTemplateBtnAnulacion>
+    
+                                <button *ngIf="!isCheckInfoPedidoAnulado" class="btn btn-sm btn-outline-danger mr-1" (click)="pedidoNoFueAntendido()">Confirmar Anulacion</button>
+                                <span *ngIf="isCheckInfoPedidoAnulado" class="fw-600 text-success"><i class="fa fa-check"></i></span>
+                            </ng-template>
+
+                        </ng-template>
+                        
+
+                        
+                    </div>
+
                     <button type="button" class="btn btn-secondary" mat-dialog-close>
                         <i class="fa fa-close"></i>                
                     </button>
@@ -57,22 +91,24 @@
         
     </div>
 
-
-    <div *ngIf="showListRepartidores" class="w-100">
-        <!-- asignar repartidor manualmente -->
-        <hr>
-        <div class="d-flex justify-content-between align-items-center">
-            <app-comp-select-repartidor (repartidorSelected)="asignarManualA($event)" [codigo_postal]="orde_codigo_postal"  [label_select]="label_comp_repartidor"></app-comp-select-repartidor>
-            <div>
-                <ng-container *ngIf="chekAsignacionManual; else elseTemplate">
-                    <i class="text-success fa fa-check fa-2x"></i>
-                </ng-container>
-                <ng-template #elseTemplate>                    
-                    <button class="btn btn-warning" *ngIf="repartidor_selected_manual" (click)="confirmarAsignacionManual()">Confirmar Asignacion</button>
-                </ng-template>                
+    
+        <div *ngIf="showListRepartidores && !isOrdenViewFromTarjeta" class="w-100">
+            <!-- asignar repartidor manualmente -->
+            <hr>
+            <div class="d-flex justify-content-between align-items-center">
+                <app-comp-select-repartidor (repartidorSelected)="asignarManualA($event)" [codigo_postal]="orde_codigo_postal"  [label_select]="label_comp_repartidor"></app-comp-select-repartidor>
+                <div>
+                    <ng-container *ngIf="chekAsignacionManual; else elseTemplate">
+                        <i class="text-success fa fa-check fa-2x"></i>
+                    </ng-container>
+                    <ng-template #elseTemplate>                    
+                        <button class="btn btn-warning" *ngIf="repartidor_selected_manual" (click)="confirmarAsignacionManual()">Confirmar Asignacion</button>
+                    </ng-template>                
+                </div>
             </div>
         </div>
-    </div>
+    
+    
     <hr>
 
 

@@ -14,6 +14,7 @@ import { SocketService } from 'src/app/shared/services/socket.service';
 import { ClassField } from '@angular/compiler';
 import { DialogOrdenExpressDetalleComponent } from 'src/app/componentes/dialog-orden-express-detalle/dialog-orden-express-detalle.component';
 import { DeliveryEstablecimiento } from 'src/app/modelos/delivery.establecimiento';
+import { PedidoModel } from 'src/app/modelos/pedido.model';
 
 @Component({
   selector: 'app-monitor',
@@ -24,7 +25,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   // @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
 
   displayedColumnsPedidos: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'importe', 'min_transcurridos', 'min_avisa' ];
-  displayedColumnsPedidosMandados: string[] = ['num_pedido', 'ciudad', 'cliente', 'de', 'a', 'vehiculo', 'repartidor', 'descripcion', 'importe', 'min_transcurridos'];
+  displayedColumnsPedidosMandados: string[] = ['num_pedido', 'ciudad', 'cliente', 'de', 'a', 'repartidor', 'descripcion', 'importe', 'min_transcurridos'];
 
   displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'por_aceptar', 'calificacion', 'efectivo_mano', 'atendidos', 'reasignado', 'online', 'ocupado'];
   displayedColumnsCliente: string[] = ['idcliente', 'cliente', 'pwa_id', 'f_registro', 'telefono', 'calificacion'];
@@ -211,6 +212,15 @@ export class MonitorComponent implements OnInit, OnDestroy {
         this.playSound(2);
         this.loadRetiroCashAtm();
       // }
+    });
+
+
+    this.socketService.onMonitorNotificaImpresionComanda()
+    .subscribe((res: any) => {
+      console.log('===== notifica-impresion-comanda =========== ', res);
+      setTimeout(() => {
+        this.notificaPedidoImpreso(res);
+      }, 1000);
     });
   }
 
@@ -572,7 +582,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
         p.pp_repartidor = importePropina + importeEntrega;
         p.total_debitar = importeTotal - p.pp_repartidor;
         p.pp_comercio = importeTotal - p.pp_repartidor;
-        p.pp_arr = this.calcImportePagar(p.pp_comercio);
+        p.pp_arr = this.calcImportePagar(p.pp_comercio, p.pwa_delivery_atendido === 1);
 
         this.addComercioToList(p.json_datos_delivery.p_header.arrDatosDelivery.establecimiento);
         this.addRepartidorToList(p);
@@ -588,7 +598,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
       console.log('this.dataPedidosAbona.data', this.dataPedidosAbona.data);
   }
 
-  calcImportePagar(importe: number): any {
+  calcImportePagar(importe: number, isPedidoAnulado = false): any {
     const comisionVisa = 0.0346; // 0.0399;
     const comisionFija = 0.51;
     const comisionTransaccion = 0.19; // c. papaya
@@ -596,7 +606,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
     const _visa = ((importe * comisionVisa) + comisionFija);
     const _igv = (_visa * 0.18) + comisionTransaccion; // igv
     const _importe_restar = _visa + _igv;
-    const _total = importe - _importe_restar;
+    const _total = isPedidoAnulado ? 0 : importe - _importe_restar;
+
 
     return {
       visa: _visa.toFixed(2),
@@ -825,6 +836,15 @@ export class MonitorComponent implements OnInit, OnDestroy {
     audio.src = `./assets/audio/${name}`;
     audio.load();
     audio.play();
+  }
+
+  private buscarPedidoById(_id): any {
+    return this.dataPedidos.data.filter(x => x.idpedido = _id)[0];
+  }
+
+  private notificaPedidoImpreso(_id) {
+    const _elPedido = this.buscarPedidoById(_id);
+    _elPedido.pwa_estado = 'A';
   }
 
 }

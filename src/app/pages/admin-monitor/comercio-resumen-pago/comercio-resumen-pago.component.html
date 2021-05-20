@@ -85,8 +85,10 @@
                 <ng-container matColumnDef="num_pedido">
                     <th mat-header-cell *matHeaderCellDef>Pedido</th>
                     <td mat-cell *matCellDef="let element">
-                        <a (click)="verPedido(element)"> {{ element.idpedido}} </a>
+                        <!-- <a (click)="verPedido(element)"> {{ element.idpedido}} </a> -->
                         <!-- <button class="p-1" (click)="verPedido(element)"><p class="fw-600">{{ element.idpedido}}</p></button>                             -->
+                        <span class="xCursor fw-600 fs-16" (click)="verPedido(element)"> {{ element.idpedido}} </span>
+                        <span class="ml-1 text-danger fs-10 fw-600" *ngIf="element.pwa_delivery_atendido === 1">No Atendido</span>
                         <p>{{ element.fecha}} {{ element.hora}}</p>                                              
                     </td>
                     <td mat-footer-cell *matFooterCellDef> Totales </td>
@@ -116,6 +118,7 @@
                 <ng-container matColumnDef="reparto">
                     <th mat-header-cell *matHeaderCellDef >Repartidor</th>
                     <td mat-cell *matCellDef="let element">
+                        <p class="fw-600 text-success">{{ element.nom_repartidor }}</p>
                         <ng-container *ngIf="!element.isPedidoLlevoPapaya; else elseTemplate">
                             <span class="badge badge-info">Propio</span>
                         </ng-container>
@@ -144,7 +147,7 @@
                 
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumnsPedidosAbona"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumnsPedidosAbona;"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumnsPedidosAbona;" [ngClass]="{'bg-row-anulado': row.pwa_delivery_atendido === 1}"></tr>
                 <tr mat-footer-row *matFooterRowDef="displayedColumnsPedidosAbona"></tr>
             </table>
         </div>

@@ -30,6 +30,7 @@ export class CompOrdeExpressComponent implements OnInit {
 
   ngOnInit(): void {
 
+    console.log('pedido mandado seleccionado', this.orden);
     this.nomRepartidor = this.orden.idrepartidor ? this.orden.nom_repartidor : null;
     this.repartidorSelected = this.orden.idrepartidor;
     this.showListRepartidores = this.nomRepartidor ? false : true;
@@ -86,6 +87,16 @@ export class CompOrdeExpressComponent implements OnInit {
     });
 
 
+  }
+
+
+  redirectWhatsApp() {
+    const _link = `https://api.whatsapp.com/send?phone=51${this.orden.pedido_json.telefono}`;
+    window.open(_link, '_blank');
+  }
+
+  callPhone() {
+    window.open(`tel:${this.orden.pedido_json.telefono}`);
   }
 
 }

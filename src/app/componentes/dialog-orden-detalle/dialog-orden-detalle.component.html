@@ -1,1 +1,4 @@
-<app-comp-orden-detalle [orden]="laOrden" (closeWindow)="cerrarDialog($event)"></app-comp-orden-detalle>
+<app-comp-orden-detalle 
+    [orden]="laOrden" 
+    [isfromComercioPago] = "_isfromComercioPago" 
+    (closeWindow)="cerrarDialog($event)"></app-comp-orden-detalle>

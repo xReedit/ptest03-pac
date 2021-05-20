@@ -1,7 +1,7 @@
 <div class="animated fadeIn">    
     <div class="d-flex justify-content-between">
         <div>
-            <p class="fw-600">Pedido Mandado / Express #{{orden.idpedido_mandado}} / {{ orden.pedido_json.vehiculo.descripcion }}</p>           
+            <p class="fw-600">Pedido Mandado / Express #{{orden.idpedido_mandado}} </p>           
 
             <!-- repartidor -->
             <p><i class="fa fa-motorcycle" aria-hidden="true"></i> Repartidor: {{ nomRepartidor || 'No asignado' }}</p>            
@@ -42,45 +42,52 @@
     <div class="p-3">
         <div class="row">
             <div class="fs-13 w-100">
-                <div class="d-flex justify-content-between">
+                <div>
                     <div>
                         <span class="fs-13 fw-600 text-secondary">Cliente: </span>
                         <p><i class="fa fa-user"></i>  {{orden.nom_cliente}}</p>
-                        <p><i class="fa fa-phone"></i> {{ orden.pedido_json.telefono }}</p>
+                        <p><i class="fa fa-phone"></i> {{ orden.telefono || orden.pedido_json.telefono}}</p>
                         <p class="fw-600 badge" [ngClass]="{'badge-primary': orden.pedido_json.metodoPago.idtipo_pago === 3, 'badge-info': orden.pedido_json.metodoPago.idtipo_pago === 2, 'badge-secondary': orden.pedido_json.metodoPago.idtipo_pago === 1}">
                             <span class="fs-15">{{orden.pedido_json.metodoPago.descripcion | titlecase }} </span>
                         </p>       
+
+                        <hr>
+                        <div class="d-flex">
+                            <div matRipple class="col-6 border-right text-info" (click)="callPhone()"><i class="fa fa-phone" aria-hidden="true"></i> LLamar</div>
+                            <div matRipple class="col-6 text-info xCursor" (click)="redirectWhatsApp()"><i class="fa fa-commenting-o" aria-hidden="true"></i> Enviar Mensaje</div>
+                        </div>
                     </div>
-                    <div>
+                    <!-- <div>
                         <p class="fs-18 fw-600 text-right"><span class="badge" [ngClass]="{'badge-warning': orden.pedido_json.vehiculo.idtipo_vehiculo === 0, 'badge-info': orden.pedido_json.vehiculo.idtipo_vehiculo === 1}">{{ orden.pedido_json.vehiculo.descripcion }}</span> </p>
-                    </div>
+                    </div> -->
                 </div>
                 <hr>
 
                 <p class="fw-600 text-secondary">Pedido: </p>
-                <ng-container *ngIf="orden.ispedido_express === 0; else elseTemplate">                    
+                <ng-container *ngIf="orden.ispedido_express == '0'; else elseTemplate">                    
                     <p>{{ orden.pedido_json.que_compramos }}</p>
                 </ng-container>
                 <ng-template #elseTemplate>
                     <p>{{ orden.pedido_json.descripcion_paquete }}</p>
                 </ng-template>
                 <hr>
+
                 <p class="fw-600 text-secondary">Donde lo recogemos?</p>
-                <ng-container *ngIf="orden.ispedido_express === 0; else elseTemplate">                    
+                <ng-container *ngIf="orden.ispedido_express === 0; else elseTemplateDireccionA">                    
                     <p>{{ orden.pedido_json.donde_compramos }}</p>
                 </ng-container>
-                <ng-template #elseTemplate>
+                <ng-template #elseTemplateDireccionA>
                     <p>{{ orden.pedido_json.direccionA.direccion }}</p>
                     <p class="fs-12 text-secondary">{{ orden.pedido_json.direccionA.referencia }}</p>
                 </ng-template>
 
                 <hr>
                 <p class="fw-600 text-secondary">A donde lo llevamos?</p>
-                <ng-container *ngIf="orden.ispedido_express === 0; else elseTemplate">                    
+                <ng-container *ngIf="orden.ispedido_express === 0; else elseTemplateDireccionB">                    
                     <p>{{ orden.pedido_json.direccionCliente.direccion }}</p>
                     <p>{{ orden.pedido_json.direccionCliente.referencia }}</p>
                 </ng-container>
-                <ng-template #elseTemplate>
+                <ng-template #elseTemplateDireccionB>
                     <p>{{ orden.pedido_json.direccionB.direccion }}</p>
                     <p class="fs-12 text-secondary">{{ orden.pedido_json.direccionB.referencia }}</p>
                 </ng-template>

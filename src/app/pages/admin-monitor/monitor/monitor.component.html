@@ -376,12 +376,12 @@
                         </td>
                     </ng-container>
 
-                    <ng-container matColumnDef="vehiculo">
+                    <!-- <ng-container matColumnDef="vehiculo">
                         <th mat-header-cell *matHeaderCellDef >Vehiculo</th>
                         <td mat-cell *matCellDef="let element">
                             <span class="fw-600">{{ element.pedido_json.vehiculo.descripcion }}</span>                            
                         </td>
-                    </ng-container>
+                    </ng-container> -->
 
                     <ng-container matColumnDef="repartidor">
                         <th mat-header-cell *matHeaderCellDef >Repartidor</th>
@@ -908,7 +908,9 @@
                         <ng-container matColumnDef="num_pedido">
                             <th mat-header-cell *matHeaderCellDef>Pedido</th>
                             <td mat-cell *matCellDef="let element">
-                                <a (click)="verPedido(element)"> {{ element.idpedido}} </a>
+                                <span class="xCursor fw-600 fs-16" (click)="verPedido(element)"> {{ element.idpedido}} </span>
+                                <span class="ml-1 text-danger fs-10 fw-600" *ngIf="element.pwa_delivery_atendido === 1">No Atendido</span>
+                                <!-- <bottom (click)="verPedido(element)"> {{ element.idpedido}} </a> -->
                                 <!-- <button class="p-1" (click)="verPedido(element)"><p class="fw-600">{{ element.idpedido}}</p></button>                             -->
                                 <p>{{ element.fecha}} {{ element.hora}}</p>                            
                             </td>
@@ -1061,8 +1063,9 @@
                                     <ng-container *ngIf="element.check_pago_repartidor === '0' ; else elseTemplate">                                
                                         <button class="p-1" (click)="checkAbonadoRepartidor(element.idpedido)"><span class="fs-9">Abonado</span></button>
                                     </ng-container>
-                                    <ng-template #elseTemplate>
+                                    <ng-template #elseTemplate>                                        
                                         <span class="fw-600 text-success"><i class="fa fa-check"></i></span>
+                                        
                                     </ng-template>
 
                                 </ng-template>
@@ -1073,7 +1076,7 @@
                         </ng-container>
         
                         <tr mat-header-row *matHeaderRowDef="getDisplayColummsAbonado()"></tr>
-                        <tr mat-row *matRowDef="let row; columns: getDisplayColummsAbonado();"></tr>
+                        <tr mat-row  *matRowDef="let row; columns: getDisplayColummsAbonado();" [ngClass]="{'bg-row-anulado': row.pwa_delivery_atendido === 1}"></tr>
                         <tr mat-footer-row *matFooterRowDef="getDisplayColummsAbonado()"></tr>
                     </table>
                     <mat-paginator [pageSizeOptions]="[20, 40, 60]" showFirstLastButtons #paginatorAbona></mat-paginator>

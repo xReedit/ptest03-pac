@@ -11,3 +11,7 @@ p {
     background: #343a40;
     overflow: auto;
 }
+
+.bg-row-anulado {
+    background: #ffebee;
+}

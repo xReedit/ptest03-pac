@@ -14,6 +14,7 @@ import { SocketService } from 'src/app/shared/services/socket.service';
 export class CompOrdenDetalleComponent implements OnInit {
 
   @Input() orden: any;
+  @Input() isfromComercioPago: boolean; // si vine de comercios resumen pago /comercio-pago // muestra la opcion de anular
   @Output() closeWindow = new EventEmitter<boolean>(false); // manda cerrar el dialog
 
   isTieneRepartidor = false;
@@ -35,6 +36,10 @@ export class CompOrdenDetalleComponent implements OnInit {
   // si tiene habilitado facturacion
   isFacturacionActivo = false;
   isComercioPropioRepartidor = false;
+  isOrdenViewFromTarjeta = false; // si procede de pago tarjeta
+  isShowBtnConfirmarAnulacion = false;
+  isCheckInfoPedidoAnulado = false;
+  isPedidoAnualdo = false;
 
   listRepartidoresPropios: any;
   repartidorSelected;
@@ -74,6 +79,9 @@ export class CompOrdenDetalleComponent implements OnInit {
     this.orden.isClientePasaRecoger = this.orden.json_datos_delivery.p_header.arrDatosDelivery.pasoRecoger;
     this.showListRepartidores = this.nomRepartidor ? false : true;
     this.orde_codigo_postal = this.orden.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.codigo_postal;
+
+    this.isOrdenViewFromTarjeta = !!this.orden.pp_arr || this.isfromComercioPago;
+    this.isPedidoAnualdo = this.orden.pwa_delivery_atendido === 1;
     // this.isComercioPropioRepartidor = this.comercioService.sedeInfo.pwa_delivery_servicio_propio === 1;
 
     // si tiene repartidores propios
@@ -230,6 +238,31 @@ export class CompOrdenDetalleComponent implements OnInit {
     if ( val ) {
       this.closeWindow.emit(val);
     }
+  }
+
+  cambiarReparidorAsignado() {
+    this.showListRepartidores = true;
+  }
+
+  pedidoNoFueAntendido() {
+    this.orden.pwa_delivery_atendido = 1;
+
+    if ( !this.isfromComercioPago ) {
+      this.orden.pp_arr.total = 0;
+    } else {
+      this.orden.pp_subtotal = 0;
+      this.orden.pp_comision = 0;
+    }
+
+    const _dataSend = {
+      idpedido: this.orden.idpedido
+    };
+
+    this.crudService.postFree(_dataSend, 'monitor', 'set-pedido-no-atendido', true)
+    .subscribe(res => {
+      console.log('pedido no antendido', res);
+      this.isCheckInfoPedidoAnulado = true;
+    });
   }
 
 }

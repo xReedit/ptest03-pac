@@ -8,11 +8,13 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 })
 export class DialogOrdenDetalleComponent implements OnInit {
   laOrden: any;
+  _isfromComercioPago = false;
   constructor(
     private dialogRef: MatDialogRef<DialogOrdenDetalleComponent>,
     @Inject(MAT_DIALOG_DATA) data: any,
   ) {
     this.laOrden = data.laOrden;
+    this._isfromComercioPago = data?.fromComercioPago || false;
   }
 
   ngOnInit(): void {
