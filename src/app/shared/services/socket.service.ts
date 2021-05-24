@@ -374,6 +374,15 @@ export class SocketService {
   }
 
 
+  onGetNuevoPedidoMandado() {
+    return new Observable(observer => {
+      this.socket.on('monitor-nuevo-pedido-mandado', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
+
   // notifica que la comanda se imprimio // esto desde el print server
   onMonitorNotificaImpresionComanda() {
     return new Observable(observer => {

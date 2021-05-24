@@ -34,6 +34,11 @@ export class UtilitariosService {
 
     }
 
+    stringToDate = (dateStr) => {
+      const [day, month, year] = dateStr.split('/');
+      return new Date(year, month - 1, day);
+    }
+
   xTiempoTranscurridos_2(h2: any) {
     const h1 = this.xDevolverHora();
     const hora1 = h1.split(':');

@@ -1,6 +1,6 @@
 <div class="animated fadeIn p-3 content-body">
 
-    <mat-tab-group mat-stretch-tabs>
+    <mat-tab-group mat-stretch-tabs (selectedTabChange)="tabSelected($event)">
         <mat-tab label="Pedidos"> 
             
             <div class="p-3">
@@ -903,7 +903,7 @@
 
                     <hr>
                     
-                    <table *ngIf="dataPedidos" class="table-model-1 w-100" mat-table [dataSource]="dataPedidosAbona">      
+                    <table *ngIf="dataPedidosAbona" class="table-model-1 w-100" mat-table [dataSource]="dataPedidosAbona">      
         
                         <ng-container matColumnDef="num_pedido">
                             <th mat-header-cell *matHeaderCellDef>Pedido</th>

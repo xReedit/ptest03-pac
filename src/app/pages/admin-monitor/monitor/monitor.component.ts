@@ -15,6 +15,7 @@ import { ClassField } from '@angular/compiler';
 import { DialogOrdenExpressDetalleComponent } from 'src/app/componentes/dialog-orden-express-detalle/dialog-orden-express-detalle.component';
 import { DeliveryEstablecimiento } from 'src/app/modelos/delivery.establecimiento';
 import { PedidoModel } from 'src/app/modelos/pedido.model';
+import { Observable } from 'rxjs/internal/Observable';
 
 @Component({
   selector: 'app-monitor',
@@ -32,6 +33,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
   displayedColumnsClienteScanQr: string[] = ['#', 'Sede', 'Canal', 'cant_total', 'imp_total'];
   displayedColumnsRetiroCashAtm: string[] = ['#', 'cliente', 'ciudad', 'direccion', 'importe', 'repartidor', 'tiempo'];
 
+  isFirstView = false;
+  tabIndexSelected = 0; // tab seleccioando
 
   // displayedColumnsPedidosAbona: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor'
   // , 'importe', 'importe_debitar', 'c_visa', 'c_igv', 'c_transaccion', 'c_entrega', 'neto_abonar', 'action'
@@ -57,6 +60,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   displayedColumnsCalificacionComercio: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'calificacion', 'comentario', 'opciones'];
 
 
+  listDataPedidosMaster: any;
   dataPedidos = new MatTableDataSource<any>();
   dataPedidosMandados = new MatTableDataSource<any>();
   dataPedidosAbonaMaster = new MatTableDataSource<any>();
@@ -104,16 +108,18 @@ export class MonitorComponent implements OnInit, OnDestroy {
   listRepartidoresPagar: any;
 
    // datapicker
-  range: any = {fromDate: new Date(), toDate: new Date()};
+  range: any = {fromDate: new Date(), toDate: new Date(), firtsIdPedidoDate: ''};
   rangoFecha: any = {};
 
-  rangeAbono: any = {fromDate: new Date(), toDate: new Date()};
+  rangeAbono: any = {fromDate: new Date(), toDate: new Date(), firtsIdPedidoDate: ''};
   rangoAbonoFecha: any = {};
 
   processLoop: any;
 
   isClimaVisible = false;
   showRepartidorMapa = false;
+
+  idFirstPedidoDateSelected = '';
 
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -131,9 +137,11 @@ export class MonitorComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.loadPedidos();
-    this.loadRepartidores();
-    this.loadClientes();
+
+    // this.lastIdPedidoDate('sys::firts_id_pedido', this.rangoFecha.desde);
+    // this.loadPedidos();
+    // this.loadRepartidores();
+    // this.loadClientes();
 
 
 
@@ -149,6 +157,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.processLoop = null;
   }
+
+
 
   private listenSocketMonitor() {
     // pedidos pendientes por aceptar
@@ -184,7 +194,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
       .subscribe(res => {
         console.log('onGetPedidoAceptadoByReparidor', res);
         // this.refreshRepartidorAceptaPedido(res);
-        this.loadPedidos();
+        this.lastIdPedidoDate('sys::firts_id_pedido', this.rangoFecha.desde);
+        // this.loadPedidos();
       });
 
     this.socketService.onGetNuevoPedido()
@@ -192,7 +203,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
       console.log('===== nuevo pedido =========== ', res);
       if ( res.p_header.delivery === 1 ) {
         this.playSound(0);
-        this.loadPedidos();
+        this.lastIdPedidoDate('sys::firts_id_pedido', this.rangoFecha.desde);
+        // this.loadPedidos();
       }
     });
 
@@ -201,8 +213,16 @@ export class MonitorComponent implements OnInit, OnDestroy {
       console.log('===== nuevo pedido update vista =========== ', res);
       // if ( res.p_header.delivery === 1 ) {
         this.playSound(0);
-        this.loadPedidos();
+        this.lastIdPedidoDate('sys::firts_id_pedido', this.rangoFecha.desde);
+        // this.loadPedidos();
       // }
+    });
+
+    this.socketService.onGetNuevoPedidoMandado()
+    .subscribe((res: any) => {
+      console.log('===== nuevo pedido mandado =========== ', res);
+        this.playSound(2);
+        this.loadPedidosMandados();
     });
 
     this.socketService.onGetNuevoPedidoRetiroCashAtm()
@@ -234,17 +254,20 @@ export class MonitorComponent implements OnInit, OnDestroy {
     console.log(this.range);
     this.rangoFecha.desde = this.utilesService.getDateString(range.fromDate);
     this.rangoFecha.hasta = this.utilesService.getDateString(range.toDate);
-    this.loadPedidos();
+    this.lastIdPedidoDate('sys::firts_id_pedido', this.rangoFecha.desde);
+    // this.loadPedidos();
   }
 
   dateRangeAbonoSelected(range: any) {
+    if ( this.tabIndexSelected !== 3) {return; }
     this.rangeAbono = range;
 
     console.log(this.range);
     this.rangoAbonoFecha.desde = this.utilesService.getDateString(range.fromDate);
     this.rangoAbonoFecha.hasta = this.utilesService.getDateString(range.toDate);
+    this.lastIdPedidoDate('sys::firts_id_pedido_abono', this.rangoAbonoFecha.desde);
 
-    this.loadPedidosAbonos();
+    // this.loadPedidosAbonos();
   }
 
   loadRetiroCashAtm() {
@@ -258,11 +281,62 @@ export class MonitorComponent implements OnInit, OnDestroy {
     });
   }
 
+  private lastIdPedidoDate(keyStorage: string, fechaSeleted: string) {
+    // return new Observable(observer => {
+      // let listKeysFechaPedido = [];
+      const listKeysFechaPedido = JSON.parse(localStorage.getItem(keyStorage)) || [];
+      if ( listKeysFechaPedido.length > 0 ) {
+        // comprobar si perteneces a esa fecha
+        const _itemRowFechaId = listKeysFechaPedido.filter(x => x.fecha === fechaSeleted)[0];
+        if ( _itemRowFechaId ) {
+          this.idFirstPedidoDateSelected = _itemRowFechaId.idpedido;
+          this.runFuncPedidos(keyStorage);
+          return;
+        }
+      }
+
+
+    let rowKeyIdPedido;
+    const _dateConvert  = this.utilesService.stringToDate(fechaSeleted);
+    const _dateSend = {
+      fromDate: this.utilesService.getDateString(_dateConvert, 1)
+    };
+
+    this.crudService.postFree(_dateSend, 'monitor', 'get-idpedido-firts-date', true)
+      .subscribe((res: any) => {
+        console.log('lastIdPedidoDate', res);
+        const _idPedidoFirtsDate = res.data[0].idpedido;
+        rowKeyIdPedido = {fecha: fechaSeleted, idpedido: _idPedidoFirtsDate};
+        listKeysFechaPedido.push(rowKeyIdPedido);
+        localStorage.setItem(keyStorage, JSON.stringify(listKeysFechaPedido));
+
+        this.idFirstPedidoDateSelected = _idPedidoFirtsDate;
+        this.runFuncPedidos(keyStorage);
+        return;
+      });
+    // });
+  }
+
+  private runFuncPedidos(keyStorage: string) {
+    switch (keyStorage) {
+      case 'sys::firts_id_pedido':
+        this.loadPedidos();
+        break;
+      case 'sys::firts_id_pedido_abono':
+        this.loadPedidosAbonos();
+        break;
+    }
+
+  }
+
   loadPedidos() {
+    this.range.firtsIdPedidoDate = this.idFirstPedidoDateSelected;
+
     console.log('this.range', this.range);
     this.crudService.postFree(this.range, 'monitor', 'get-pedidos', true)
     .subscribe((res: any) => {
       console.log(res);
+      this.listDataPedidosMaster = res.data;
       this.dataPedidos.data = res.data;
       this.countPedidos = res.data.length;
       this.countPedidosApp = 0;
@@ -292,6 +366,18 @@ export class MonitorComponent implements OnInit, OnDestroy {
       // this.verPedidoPagosVisa();
     });
 
+
+    // atm retiros cash
+    if ( this.isFirstView ) {
+      this.loadPedidosMandados();
+      this.loadRetiroCashAtm();
+      this.isFirstView = false;
+    }
+
+
+  }
+
+  loadPedidosMandados() {
     // load pedidos mandados y express
     this.crudService.postFree(this.range, 'monitor', 'get-pedidos-mandados', true)
     .subscribe((resp: any) => {
@@ -304,12 +390,10 @@ export class MonitorComponent implements OnInit, OnDestroy {
       this.isPedidosMandadosNotify = this.countPedidoMandados > this.countPedidoMandadosNotify;
       this.lastCountPedidoMandadosNotify = this.countPedidoMandados;
     });
-
-    // atm retiros cash
-    this.loadRetiroCashAtm();
   }
 
   loadPedidosAbonos() {
+    this.rangeAbono.firtsIdPedidoDate = this.idFirstPedidoDateSelected;
     this.crudService.postFree(this.rangeAbono, 'monitor', 'get-pedidos-abono', true)
     .subscribe((res: any) => {
       console.log(res);
@@ -839,12 +923,32 @@ export class MonitorComponent implements OnInit, OnDestroy {
   }
 
   private buscarPedidoById(_id): any {
-    return this.dataPedidos.data.filter(x => x.idpedido = _id)[0];
+    if ( !_id || _id === 0 || !this.listDataPedidosMaster) {return null; }
+    return this.listDataPedidosMaster.filter(x => x.idpedido = _id)[0];
   }
 
   private notificaPedidoImpreso(_id) {
-    const _elPedido = this.buscarPedidoById(_id);
-    _elPedido.pwa_estado = 'A';
+    // const _elPedido = this.buscarPedidoById(_id);
+    // if ( !_elPedido ) { return; }
+    // _elPedido.pwa_estado = 'A';
+  }
+
+  tabSelected($event: any) {
+    console.log('$event tab', $event);
+    this.tabIndexSelected = $event.index;
+
+    switch (this.tabIndexSelected) {
+      case 1:
+        if ( this.dataRepartidores.data.length > 0 ) {return; }
+        this.loadRepartidores();
+        break;
+      case 2:
+        if ( this.dataClientes.data.length > 0 ) {return; }
+        this.loadClientes();
+        break;
+    }
+
+
   }
 
 }
