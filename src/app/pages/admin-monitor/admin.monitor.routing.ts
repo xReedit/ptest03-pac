@@ -4,6 +4,7 @@ import { MainComponent } from './main/main.component';
 import { MonitorComponent } from './monitor/monitor.component';
 import { ComerciosComponent } from './comercios/comercios.component';
 import { ComercioResumenPagoComponent } from './comercio-resumen-pago/comercio-resumen-pago.component';
+import { ConfirmarPagoServicioComponent } from './confirmar-pago-servicio/confirmar-pago-servicio.component';
 
 
 const routes: Routes = [{
@@ -22,6 +23,11 @@ const routes: Routes = [{
             path: 'comercios',
             component: ComerciosComponent,
             data: { titulo: 'Comercios' }
+        },
+        {
+            path: 'comercios-cofirmar-pago-servicio',
+            component: ConfirmarPagoServicioComponent,
+            data: { titulo: 'Comercios pago servicio' }
         },
         {
             path: 'comercio-pago',

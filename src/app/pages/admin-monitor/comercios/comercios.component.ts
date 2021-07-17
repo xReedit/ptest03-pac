@@ -175,4 +175,8 @@ export class ComerciosComponent implements OnInit {
     this.dataComercios.data = this.dataComerciosMaster.filter(x => (x.nombre + ' ' +  x.ciudad).toLowerCase().indexOf(value.toLowerCase()) > -1 );
   }
 
+  goPagoServicioConfirmar() {
+    this.router.navigate(['./comercio/comercios-cofirmar-pago-servicio']);
+  }
+
 }

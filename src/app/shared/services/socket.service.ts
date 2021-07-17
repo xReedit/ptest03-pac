@@ -273,6 +273,23 @@ export class SocketService {
     });
   }
 
+  onPedidoAsignadoManual() {
+    return new Observable(observer => {
+      this.socket.on('set-asigna-pedido-repartidor-manual', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
+
+  onRepartidorNotificaGrupoPedidoDinalizado() {
+    return new Observable(observer => {
+      this.socket.on('repartidor-grupo-pedido-finalizado', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
 
 
 

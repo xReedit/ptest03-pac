@@ -5,6 +5,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatDialogConfig, MatDialog } from '@angular/material/dialog';
 import { DialogOrdenDetalleComponent } from 'src/app/componentes/dialog-orden-detalle/dialog-orden-detalle.component';
 import { UtilitariosService } from 'src/app/shared/services/utilitarios.service';
+// import { TimetChangeCostoService } from 'src/app/shared/services/timet-change-costo.service';
 
 
 // pdf
@@ -14,8 +15,10 @@ import { SocketService } from 'src/app/shared/services/socket.service';
 import { ClassField } from '@angular/compiler';
 import { DialogOrdenExpressDetalleComponent } from 'src/app/componentes/dialog-orden-express-detalle/dialog-orden-express-detalle.component';
 import { DeliveryEstablecimiento } from 'src/app/modelos/delivery.establecimiento';
+import { ComisionesVisaModel } from 'src/app/modelos/comsiones.visa.model';
 import { PedidoModel } from 'src/app/modelos/pedido.model';
 import { Observable } from 'rxjs/internal/Observable';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-monitor',
@@ -28,12 +31,12 @@ export class MonitorComponent implements OnInit, OnDestroy {
   displayedColumnsPedidos: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'importe', 'min_transcurridos', 'min_avisa' ];
   displayedColumnsPedidosMandados: string[] = ['num_pedido', 'ciudad', 'cliente', 'de', 'a', 'repartidor', 'descripcion', 'importe', 'min_transcurridos'];
 
-  displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'por_aceptar', 'calificacion', 'efectivo_mano', 'atendidos', 'reasignado', 'online', 'ocupado'];
+  displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'por_aceptar', 'aceptados', 'calificacion', 'efectivo_mano', 'reasignado', 'online', 'ocupado'];
   displayedColumnsCliente: string[] = ['idcliente', 'cliente', 'pwa_id', 'f_registro', 'telefono', 'calificacion'];
   displayedColumnsClienteScanQr: string[] = ['#', 'Sede', 'Canal', 'cant_total', 'imp_total'];
   displayedColumnsRetiroCashAtm: string[] = ['#', 'cliente', 'ciudad', 'direccion', 'importe', 'repartidor', 'tiempo'];
 
-  isFirstView = false;
+  isFirstView = true;
   tabIndexSelected = 0; // tab seleccioando
 
   // displayedColumnsPedidosAbona: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor'
@@ -75,6 +78,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   listPPendienteSocket: any;
   listFiltroOrigin: any;
   listPedidosRetirosCashAtmMaster: any;
+  listComisionVisa: ComisionesVisaModel;
   sumTotalAbona = 0;
   countPedidosAbonar = 0;
   countPedidos = 0;
@@ -83,6 +87,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   countPedidosPagoTarjeta = 0;
   countPedidosPagoYape = 0;
   countPedidoRetirosAtm = 0;
+  // countPedidoExpress = 0;
 
   countPedidosAndroid = 0;
   countPedidosIphone = 0;
@@ -133,7 +138,9 @@ export class MonitorComponent implements OnInit, OnDestroy {
     private crudService: CrudHttpService,
     private utilesService: UtilitariosService,
     private dialog: MatDialog,
-    private socketService: SocketService
+    private socketService: SocketService,
+    private router: Router,
+    // private timechangeService: TimetChangeCostoService
   ) { }
 
   ngOnInit(): void {
@@ -151,6 +158,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
     this.loopLoad();
 
     this.listenSocketMonitor();
+
+    // this.timechangeService.initTime();
   }
 
 
@@ -242,6 +251,39 @@ export class MonitorComponent implements OnInit, OnDestroy {
         this.notificaPedidoImpreso(res);
       }, 1000);
     });
+
+    this.socketService.onDeliveryPedidoFin()
+    .subscribe((res: any) => {
+      console.log('===== repartidor-notifica-fin-pedido =========== ', res);
+      const _repartidorPedido = this.dataRepartidores.data.filter(r => r.idrepartidor === res.idrepartidor)[0];
+      if ( _repartidorPedido?.pedido_por_aceptar ) {
+        _repartidorPedido.pedido_por_aceptar.cantidad_entregados++;
+      }
+    });
+
+    this.socketService.onPedidoAsignadoManual()
+    .subscribe((res: any) => {
+      console.log('===== set-asigna-pedido-repartidor-manual =========== ', res);
+      const _repartidorPedido = this.dataRepartidores.data.filter(r => r.idrepartidor === res.idrepartidor)[0];
+      if ( _repartidorPedido?.pedido_por_aceptar ) {
+        _repartidorPedido.pedido_por_aceptar.cantidad_pedidos_aceptados++;
+      }
+    });
+
+
+    this.socketService.onRepartidorNotificaGrupoPedidoDinalizado()
+    .subscribe((res: any) => {
+      console.log('===== repartidor-grupo-pedido-finalizado =========== ', res);
+      const _repartidorPedido = this.dataRepartidores.data.filter(r => r.idrepartidor === res)[0];
+      if ( _repartidorPedido?.pedido_por_aceptar ) {
+        _repartidorPedido.pedido_por_aceptar = null;
+        _repartidorPedido.r_idpedido = null;
+        _repartidorPedido.ocupado = 0;
+        // _repartidorPedido.pedido_por_aceptar.cantidad_pedidos_aceptados++;
+      }
+    });
+
+
   }
 
   private loopLoad() {
@@ -284,14 +326,26 @@ export class MonitorComponent implements OnInit, OnDestroy {
   private lastIdPedidoDate(keyStorage: string, fechaSeleted: string) {
     // return new Observable(observer => {
       // let listKeysFechaPedido = [];
+      let isTomoElMayorId = false;
       const listKeysFechaPedido = JSON.parse(localStorage.getItem(keyStorage)) || [];
       if ( listKeysFechaPedido.length > 0 ) {
         // comprobar si perteneces a esa fecha
+
         const _itemRowFechaId = listKeysFechaPedido.filter(x => x.fecha === fechaSeleted)[0];
         if ( _itemRowFechaId ) {
           this.idFirstPedidoDateSelected = _itemRowFechaId.idpedido;
           this.runFuncPedidos(keyStorage);
           return;
+        }
+
+        // si es la primera vista, trae el mayor id
+        const _idPSotrage = listKeysFechaPedido.map(x => x.idpedido).sort((a, b) => a - b)[0];
+        if ( this.isFirstView ) {
+          isTomoElMayorId = true;
+          console.log('_idPSotrage', _idPSotrage);
+          this.idFirstPedidoDateSelected = _idPSotrage;
+          this.runFuncPedidos(keyStorage);
+          // return;
         }
       }
 
@@ -311,7 +365,11 @@ export class MonitorComponent implements OnInit, OnDestroy {
         localStorage.setItem(keyStorage, JSON.stringify(listKeysFechaPedido));
 
         this.idFirstPedidoDateSelected = _idPedidoFirtsDate;
-        this.runFuncPedidos(keyStorage);
+
+        // si toma el mayor solo guarda la fecha actual
+        if ( !isTomoElMayorId ) {
+          this.runFuncPedidos(keyStorage);
+        }
         return;
       });
     // });
@@ -368,11 +426,11 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
 
     // atm retiros cash
-    if ( this.isFirstView ) {
+    // if ( this.isFirstView ) {
       this.loadPedidosMandados();
       this.loadRetiroCashAtm();
       this.isFirstView = false;
-    }
+    // }
 
 
   }
@@ -401,6 +459,17 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
       this.dataPedidosAbonaMaster.data = res.data;
       // this.dataPedidosAbonaMaster.paginator = this.paginatorAbona;
+      this.loadDatosVisaComsiones();
+
+      // this.verPedidoPagosVisa();
+    });
+  }
+
+  loadDatosVisaComsiones() {
+    this.crudService.getAll('monitor', 'get-comisiones-visa-calc', false, false, true)
+    .subscribe((res: any) => {
+      console.log('comisiones-visa-calc', res);
+      this.listComisionVisa = res.data[0];
 
       this.verPedidoPagosVisa();
     });
@@ -683,12 +752,13 @@ export class MonitorComponent implements OnInit, OnDestroy {
   }
 
   calcImportePagar(importe: number, isPedidoAnulado = false): any {
-    const comisionVisa = 0.0346; // 0.0399;
-    const comisionFija = 0.51;
-    const comisionTransaccion = 0.19; // c. papaya
+    const comisionVisa = parseFloat(this.listComisionVisa.comision_visa); // 0.0346; // 0.0399;
+    const comisionFija = parseFloat(this.listComisionVisa.comision_transaccion); // 0.51;
+    const comisionTransaccion = parseFloat(this.listComisionVisa.comision_papaya); // 0.19; // c. papaya
+    const porcentaje_igv = parseFloat(this.listComisionVisa.igv);
 
     const _visa = ((importe * comisionVisa) + comisionFija);
-    const _igv = (_visa * 0.18) + comisionTransaccion; // igv
+    const _igv = (_visa * porcentaje_igv) + comisionTransaccion; // igv
     const _importe_restar = _visa + _igv;
     const _total = isPedidoAnulado ? 0 : importe - _importe_restar;
 
@@ -786,14 +856,15 @@ export class MonitorComponent implements OnInit, OnDestroy {
     });
   }
 
-  checkAbonado (idpedido: number) {
+  checkAbonado (item: any) {
     const _dateSend = {
-      idpedido: idpedido
+      idpedido: item.idpedido,
+      idpwa_pago_transaction: item.idpwa_pago_transaction
     };
 
     this.crudService.postFree(_dateSend, 'monitor', 'set-check-abonado', true)
       .subscribe(res => {
-        const _pedido = this.findPedido(idpedido);
+        const _pedido = this.findPedido(item.idpedido);
         _pedido.check_pagado = '1';
       });
   }
@@ -949,6 +1020,10 @@ export class MonitorComponent implements OnInit, OnDestroy {
     }
 
 
+  }
+
+  goPagoServicioConfirmar() {
+    this.router.navigate(['./comercio/comercios-cofirmar-pago-servicio']);
   }
 
 }

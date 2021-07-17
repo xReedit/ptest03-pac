@@ -176,12 +176,15 @@ export class CompOrdenDetalleComponent implements OnInit {
   }
 
   confirmarAsignacionManual() {
+    // console.log('this.repartidor_selected_manual', this.repartidor_selected_manual);
     this.chekAsignacionManual = true;
     let pedidos_repartidor = this.repartidor_selected_manual.pedido_por_aceptar;
 
     const _importePedido = parseFloat(this.orden.total_r);
     if ( pedidos_repartidor ) {
       pedidos_repartidor.pedidos.push(this.orden.idpedido);
+      pedidos_repartidor.cantidad_pedidos_aceptados = pedidos_repartidor.pedidos.length,
+      pedidos_repartidor.cantidad_entregados =  pedidos_repartidor.cantidad_entregados || 0,
       pedidos_repartidor.importe_acumula = parseFloat( pedidos_repartidor.importe_acumula ) + _importePedido;
       pedidos_repartidor.importe_pagar = parseFloat( pedidos_repartidor.importe_pagar ) + _importePedido;
       pedidos_repartidor.pedido_asignado_manual = this.orden.idpedido; // para reset a los demas repartidores
@@ -193,6 +196,8 @@ export class CompOrdenDetalleComponent implements OnInit {
 
       pedidos_repartidor = {
         pedidos: _listPedido,
+        cantidad_pedidos_aceptados: _listPedido.length,
+        cantidad_entregados: 0,
         importe_acumula: _importePedido.toFixed(2),
         importe_pagar: _importePedido.toFixed(2),
         idsede: this.orden.idsede,
@@ -207,6 +212,8 @@ export class CompOrdenDetalleComponent implements OnInit {
 
     }
 
+    // console.log('pedidos_repartidor', pedidos_repartidor);
+
     const _dataSend = {
       pedido : pedidos_repartidor
     };
@@ -220,9 +227,35 @@ export class CompOrdenDetalleComponent implements OnInit {
 
       // emitir socket al rerpatidor para que recargue
       this.socketService.emit('set-asigna-pedido-repartidor-manual', pedidos_repartidor);
+      this.sendNotificaClienteRepartidor();
     });
 
 
+  }
+
+  private sendNotificaClienteRepartidor() {
+    const listClienteNotificar = [];
+    // this.listPedidos.filter(p => !p.idrepartidor ).map(p => {
+      const rowDatos = this.orden?.json_datos_delivery?.p_header?.arrDatosDelivery;
+      if ( rowDatos ) {
+        const rowCliente = {
+          nombre: rowDatos.nombre.split(' ')[0],
+          telefono: rowDatos.telefono,
+          establecimiento: rowDatos.establecimiento.nombre,
+          idpedido: this.orden.idpedido,
+          repartidor_nom: this.repartidor_selected_manual.nombre.split(' ')[0],
+          repartidor_telefono: this.repartidor_selected_manual.telefono_repartidor || this.repartidor_selected_manual.telefono
+        };
+
+        listClienteNotificar.push(rowCliente);
+      }
+    // });
+
+    console.log('listClienteNotificar', listClienteNotificar);
+
+    if ( listClienteNotificar.length > 0 ) {
+      this.socketService.emit('repartidor-notifica-cliente-acepto-pedido', listClienteNotificar);
+    }
   }
 
   redirectWhatsApp() {
@@ -255,7 +288,8 @@ export class CompOrdenDetalleComponent implements OnInit {
     }
 
     const _dataSend = {
-      idpedido: this.orden.idpedido
+      idpedido: this.orden.idpedido,
+      idpwa_pago_transaction: this.orden.idpwa_pago_transaction || null
     };
 
     this.crudService.postFree(_dataSend, 'monitor', 'set-pedido-no-atendido', true)

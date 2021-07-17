@@ -44,6 +44,11 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- pago de servicios pendiente de modificar -->
+                        <!-- <div>
+                            <p class="badge badge-danger animated pulse infinite xCursor" (click)="goPagoServicioConfirmar()"> Confirmar pago servicio <i class="fa fa-bank"></i></p>
+                        </div> -->
                     </div>                    
                     <div class="d-flex align-items-center">
                         <!-- <button class="btn btn-sm btn-success mr-2" [ngClass]="{'btn-success': isClimaVisible, 'btn-secondary': '!isClimaVisible'}" (click)="isClimaVisible = !isClimaVisible"><i class="fa fa-refresh"></i><p class="fs-8 m-0">Clima</p></button> -->
@@ -124,6 +129,133 @@
                     <br>
                 </div>
 
+
+                <!-- pedidos mandados y express -->
+
+                <div *ngIf="countPedidoMandados > 0 || isShowPedidosExpress">
+                    <button *ngIf="isShowPedidosExpress" mat-flat-button color="primary" (click)="isShowPedidosExpress = false;"><i class="fa fa-arrow-left"></i>   Atras</button>
+                    <table *ngIf="dataPedidosMandados" class="table-model-1 w-100" mat-table [dataSource]="dataPedidosMandados">      
+        
+                        <ng-container matColumnDef="num_pedido">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p class="fw-600"> <span class="fw-600">Pedido Express</span> {{ element.idpedido_mandado}}</p>                            
+                                <p>{{ element.fecha_hora}}</p>                            
+                            </td>
+                        </ng-container>
+                        
+        
+                        <ng-container matColumnDef="ciudad">
+                            <th mat-header-cell *matHeaderCellDef>Ciudad</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.ciudad}}</p>   
+                                <div class="d-flex align-items-center">
+                                    <p class="badge badge-success mr-2">
+                                        APP
+                                    </p>   
+                                    <div>
+                                        <p class="text-success" *ngIf="element.pedido_json.systemOS === 'Android'"><i class="fa fa-android"></i></p>                                              
+                                        <p class="text-warning" *ngIf="element.pedido_json.systemOS === 'iOS'"><i class="fa fa-apple"></i></p>
+                                        <p class="text-secondary" *ngIf="element.pedido_json.systemOS === 'Windows'"><i class="fa fa-windows"></i></p>
+                                    </div>
+                               </div>                                       
+                            </td>
+                        </ng-container>
+        
+                        <ng-container matColumnDef="cliente">
+                            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                            <td mat-cell *matCellDef="let element">
+                                <p>{{ element.nom_cliente}}</p>                                          
+                                <p>{{ element.pedido_json.telefono}}</p>
+                            </td>
+                        </ng-container>
+    
+                        <ng-container matColumnDef="de">
+                            <th mat-header-cell *matHeaderCellDef >Desde</th>
+                            <td mat-cell *matCellDef="let element" style="max-width: 80px;">
+                                <ng-container *ngIf="element.ispedido_express === 0; else elseTemplate">                                
+                                    <span class="fw-100">{{ element.pedido_json.donde_compramos }}</span>                            
+                                </ng-container>
+                                <ng-template #elseTemplate>
+                                    <span>{{ element.pedido_json.direccionA.direccion }}</span>
+                                    <span class="text-secondary">{{ element.pedido_json.direccionA.referencia }}</span>
+                                </ng-template>
+                                
+                            </td>
+                        </ng-container>
+    
+                        <ng-container matColumnDef="a">
+                            <th mat-header-cell *matHeaderCellDef >Entrega</th>
+                            <td mat-cell *matCellDef="let element" style="max-width: 80px;">
+                                <ng-container *ngIf="element.ispedido_express === 0; else elseTemplate">                                
+                                    <span class="fw-100">{{ element.pedido_json.direccionCliente.direccion }}</span>                            
+                                    <span class="text-secondary">{{ element.pedido_json.direccionCliente.referencia }}</span>
+                                </ng-container>
+                                <ng-template #elseTemplate>
+                                    <span>{{ element.pedido_json.direccionB.direccion }}</span>
+                                    <span class="text-secondary">{{ element.pedido_json.direccionB.referencia }}</span>
+                                </ng-template>
+                                
+                            </td>
+                        </ng-container>
+    
+                        <!-- <ng-container matColumnDef="vehiculo">
+                            <th mat-header-cell *matHeaderCellDef >Vehiculo</th>
+                            <td mat-cell *matCellDef="let element">
+                                <span class="fw-600">{{ element.pedido_json.vehiculo.descripcion }}</span>                            
+                            </td>
+                        </ng-container> -->
+    
+                        <ng-container matColumnDef="repartidor">
+                            <th mat-header-cell *matHeaderCellDef >Repartidor</th>
+                            <td mat-cell *matCellDef="let element">
+                                <span class="fw-600 text-success">{{ element.nom_repartidor }}</span>
+                                <p>{{ element.telefono_repartidor}}</p>
+                            </td>
+                        </ng-container>
+    
+                        <ng-container matColumnDef="descripcion">
+                            <th mat-header-cell *matHeaderCellDef>Pedido</th>
+                            <td mat-cell *matCellDef="let element" style="max-width: 100px;">                            
+                                <ng-container *ngIf="element.ispedido_express === 0; else elseTemplate">                                
+                                    <span class="fs-12">                                
+                                        {{ element.pedido_json.que_compramos }}
+                                    </span>
+                                </ng-container>
+                                <ng-template #elseTemplate>
+                                    <span class="fs-12">                                
+                                        {{ element.pedido_json.descripcion_paquete }}
+                                    </span>
+                                </ng-template>
+                                
+                            </td>
+                        </ng-container>
+                        
+                        <ng-container matColumnDef="importe">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">Imp. Total</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <p class="fw-600">{{ element.pedido_json.importe_pagar | number: '.2'}}</p>
+                                <p class="fw-600 badge" [ngClass]="{'badge-primary': element.pedido_json.metodoPago.idtipo_pago === 3, 'badge-info': element.pedido_json.metodoPago.idtipo_pago === 2, 'badge-secondary': element.pedido_json.metodoPago.idtipo_pago === 1}">
+                                    {{element.pedido_json.metodoPago.descripcion | titlecase }} 
+                                </p> 
+                            </td>
+                        </ng-container>
+                        
+                        <ng-container matColumnDef="min_transcurridos">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">M. Transcurridos</th>
+                            <td mat-cell *matCellDef="let element" align="right">
+                                <span class="fw-600" *ngIf="!element.idrepartidor">{{ element.min_transcurridos }}</span>
+                                <span *ngIf="element.pwa_estado == 'E'" class="fw-600 text-success">Entregado</span>
+                                <br>
+                                <button class="p-1" (click)="verPedidoExpress(element)">Ver pedido</button>
+                            </td>
+                        </ng-container>
+        
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsPedidosMandados"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumnsPedidosMandados;"></tr>
+                    </table>                
+                    </div>
+
                 <!-- pedidos retiros cash entregados -->
 
                 <div *ngIf="isShowPedidoRetirosEntregados">  
@@ -182,7 +314,7 @@
                         <ng-container matColumnDef="tiempo">
                             <th mat-header-cell *matHeaderCellDef align="right">M. Transcurridos</th>
                             <td mat-cell *matCellDef="let element" align="right">                                
-                                <span class="fw-600 text-success">Entregado</span>                                
+                                <span class="fw-600 text-success">Entregado</span>
                                 <!-- <button class="p-1" (click)="verPedidoRetiroAtm(element)">Ver pedido</button> -->
                             </td>
                         </ng-container>
@@ -288,6 +420,7 @@
                                 <div *ngIf="element.idrepartidor">
                                     <ng-container *ngIf="element.pwa_delivery_status === '4'; else elseTemplate">
                                         <span class="fw-600 text-success">Entregado</span>
+                                        <p class="fw-600" [ngClass]="{'text-success': element.pwa_delivery_tiempo_atendido <= 30, 'text-danger': element.pwa_delivery_tiempo_atendido > 30}">{{element.pwa_delivery_tiempo_atendido}} min</p>
                                     </ng-container>
                                     <ng-template #elseTemplate>
                                         <span class="fw-600">En proceso</span>
@@ -307,131 +440,7 @@
                 </div>
 
 
-                <!-- pedidos mandados y express -->
-
-                <div *ngIf="isShowPedidosExpress">
-                <button mat-flat-button color="primary" (click)="isShowPedidosExpress = false;"><i class="fa fa-arrow-left"></i>   Atras</button>
-                <table *ngIf="dataPedidosMandados" class="table-model-1 w-100" mat-table [dataSource]="dataPedidosMandados">      
-    
-                    <ng-container matColumnDef="num_pedido">
-                        <th mat-header-cell *matHeaderCellDef>#</th>
-                        <td mat-cell *matCellDef="let element">
-                            <p class="fw-600">{{ element.idpedido_mandado}}</p>                            
-                            <p>{{ element.fecha_hora}}</p>                            
-                        </td>
-                    </ng-container>
-                    
-    
-                    <ng-container matColumnDef="ciudad">
-                        <th mat-header-cell *matHeaderCellDef>Ciudad</th>
-                        <td mat-cell *matCellDef="let element">
-                            <p>{{ element.ciudad}}</p>   
-                            <div class="d-flex align-items-center">
-                                <p class="badge badge-success mr-2">
-                                    APP
-                                </p>   
-                                <div>
-                                    <p class="text-success" *ngIf="element.pedido_json.systemOS === 'Android'"><i class="fa fa-android"></i></p>                                              
-                                    <p class="text-warning" *ngIf="element.pedido_json.systemOS === 'iOS'"><i class="fa fa-apple"></i></p>
-                                    <p class="text-secondary" *ngIf="element.pedido_json.systemOS === 'Windows'"><i class="fa fa-windows"></i></p>
-                                </div>
-                           </div>                                       
-                        </td>
-                    </ng-container>
-    
-                    <ng-container matColumnDef="cliente">
-                        <th mat-header-cell *matHeaderCellDef>Cliente</th>
-                        <td mat-cell *matCellDef="let element">
-                            <p>{{ element.nom_cliente}}</p>                                          
-                            <p>{{ element.pedido_json.telefono}}</p>
-                        </td>
-                    </ng-container>
-
-                    <ng-container matColumnDef="de">
-                        <th mat-header-cell *matHeaderCellDef >Desde</th>
-                        <td mat-cell *matCellDef="let element" style="max-width: 80px;">
-                            <ng-container *ngIf="element.ispedido_express === 0; else elseTemplate">                                
-                                <span class="fw-100">{{ element.pedido_json.donde_compramos }}</span>                            
-                            </ng-container>
-                            <ng-template #elseTemplate>
-                                <span>{{ element.pedido_json.direccionA.direccion }}</span>
-                                <span class="text-secondary">{{ element.pedido_json.direccionA.referencia }}</span>
-                            </ng-template>
-                            
-                        </td>
-                    </ng-container>
-
-                    <ng-container matColumnDef="a">
-                        <th mat-header-cell *matHeaderCellDef >Entrega</th>
-                        <td mat-cell *matCellDef="let element" style="max-width: 80px;">
-                            <ng-container *ngIf="element.ispedido_express === 0; else elseTemplate">                                
-                                <span class="fw-100">{{ element.pedido_json.direccionCliente.direccion }}</span>                            
-                                <span class="text-secondary">{{ element.pedido_json.direccionCliente.referencia }}</span>
-                            </ng-container>
-                            <ng-template #elseTemplate>
-                                <span>{{ element.pedido_json.direccionB.direccion }}</span>
-                                <span class="text-secondary">{{ element.pedido_json.direccionB.referencia }}</span>
-                            </ng-template>
-                            
-                        </td>
-                    </ng-container>
-
-                    <!-- <ng-container matColumnDef="vehiculo">
-                        <th mat-header-cell *matHeaderCellDef >Vehiculo</th>
-                        <td mat-cell *matCellDef="let element">
-                            <span class="fw-600">{{ element.pedido_json.vehiculo.descripcion }}</span>                            
-                        </td>
-                    </ng-container> -->
-
-                    <ng-container matColumnDef="repartidor">
-                        <th mat-header-cell *matHeaderCellDef >Repartidor</th>
-                        <td mat-cell *matCellDef="let element">
-                            <span class="fw-600 text-success">{{ element.nom_repartidor }}</span>
-                            <p>{{ element.telefono_repartidor}}</p>
-                        </td>
-                    </ng-container>
-
-                    <ng-container matColumnDef="descripcion">
-                        <th mat-header-cell *matHeaderCellDef>Pedido</th>
-                        <td mat-cell *matCellDef="let element" style="max-width: 100px;">                            
-                            <ng-container *ngIf="element.ispedido_express === 0; else elseTemplate">                                
-                                <span class="fs-12">                                
-                                    {{ element.pedido_json.que_compramos }}
-                                </span>
-                            </ng-container>
-                            <ng-template #elseTemplate>
-                                <span class="fs-12">                                
-                                    {{ element.pedido_json.descripcion_paquete }}
-                                </span>
-                            </ng-template>
-                            
-                        </td>
-                    </ng-container>
-                    
-                    <ng-container matColumnDef="importe">
-                        <th mat-header-cell *matHeaderCellDef class="text-right">Imp. Total</th>
-                        <td mat-cell *matCellDef="let element" align="right">
-                            <p class="fw-600">{{ element.pedido_json.importe_pagar | number: '.2'}}</p>
-                            <p class="fw-600 badge" [ngClass]="{'badge-primary': element.pedido_json.metodoPago.idtipo_pago === 3, 'badge-info': element.pedido_json.metodoPago.idtipo_pago === 2, 'badge-secondary': element.pedido_json.metodoPago.idtipo_pago === 1}">
-                                {{element.pedido_json.metodoPago.descripcion | titlecase }} 
-                            </p> 
-                        </td>
-                    </ng-container>
-                    
-                    <ng-container matColumnDef="min_transcurridos">
-                        <th mat-header-cell *matHeaderCellDef class="text-right">M. Transcurridos</th>
-                        <td mat-cell *matCellDef="let element" align="right">
-                            <span class="fw-600" *ngIf="!element.idrepartidor">{{ element.min_transcurridos }}</span>
-                            <span *ngIf="element.pwa_estado == 'E'" class="fw-600 text-success">Entregado</span>
-                            <br>
-                            <button class="p-1" (click)="verPedidoExpress(element)">Ver pedido</button>
-                        </td>
-                    </ng-container>
-    
-                    <tr mat-header-row *matHeaderRowDef="displayedColumnsPedidosMandados"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumnsPedidosMandados;"></tr>
-                </table>                
-                </div>
+                
 
 
 
@@ -529,11 +538,23 @@
                             </div>
                         </td>
                     </ng-container>
+
+                    <ng-container matColumnDef="aceptados">
+                        <th mat-header-cell *matHeaderCellDef class="text-center">Entregados</th>
+                        <td mat-cell *matCellDef="let element" align="center">
+                            <div class="text-center" *ngIf="!!element?.pedido_por_aceptar">
+                                <p class="fs-12 fw-600">{{ element?.pedido_por_aceptar.cantidad_entregados }} de {{ element?.pedido_por_aceptar.cantidad_pedidos_aceptados | number: '2.' }}</p>
+                                <p class="fs-11 text-secondary">Pedidos Entregados</p>
+                            </div>
+                        </td>
+                    </ng-container>
     
                     <ng-container matColumnDef="calificacion">
                         <th mat-header-cell *matHeaderCellDef>Calificacion</th>
                         <td mat-cell *matCellDef="let element">
-                            <p>{{ element.calificacion}}</p>                                                                                              
+                            <div class="text-center">
+                                <p>{{ element.calificacion}}</p>                                                                                              
+                            </div>
                         </td>
                     </ng-container>                    
     
@@ -544,12 +565,7 @@
                         </td>
                     </ng-container>
                     
-                    <ng-container matColumnDef="atendidos">
-                        <th mat-header-cell *matHeaderCellDef class="text-right">P. Ätendidos</th>
-                        <td mat-cell *matCellDef="let element" align="right">
-                            <span>{{ element.pedidos_atendidos }}</span>
-                        </td>
-                    </ng-container>
+                    
                     
                     <ng-container matColumnDef="reasignado">
                         <th mat-header-cell *matHeaderCellDef class="text-right">P. Reasignados</th>
@@ -1050,7 +1066,7 @@
 
                                     <!-- comercio -->
                                     <ng-container *ngIf="element.check_pagado === '0' ; else elseTemplate">                                
-                                        <button class="p-1" (click)="checkAbonado(element.idpedido)"><span class="fs-9">Abonado</span></button>
+                                        <button class="p-1" (click)="checkAbonado(element)"><span class="fs-9">Abonado</span></button>
                                     </ng-container>
                                     <ng-template #elseTemplate>
                                         <span class="fw-600 text-success"><i class="fa fa-check"></i></span>

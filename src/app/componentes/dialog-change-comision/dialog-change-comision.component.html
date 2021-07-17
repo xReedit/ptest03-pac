@@ -8,24 +8,76 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-
-      <hr>
-      <div>
-        <mat-form-field>        
-            <input matInput type="number" placeholder="Costo Base S/." [(ngModel)]="plazaSelected.c_minimo" name="c_minimo">
-        </mat-form-field>
-        <mat-form-field>        
-            <input matInput type="number" placeholder="Costo Km Adicional S/." [(ngModel)]="plazaSelected.c_km" name="c_km">
-        </mat-form-field>
-
-        <br>
-        <div *ngIf="plazaSelected.icons_entrega">
-            <p class="fs-600 fs-18">Iconos a mostrar</p>
-            <div *ngFor="let itemCheck of plazaSelected.icons_entrega">
-                <mat-checkbox class="example-margin" [checked]="itemCheck.visible" [(ngModel)]="itemCheck.visible">{{ itemCheck.motivo }}</mat-checkbox>
+      
+      <!-- <hr> -->
+      <mat-tab-group mat-stretch-tabs>
+        <mat-tab label="Costos"> 
+          <br>
+          <div>
+            <mat-form-field>        
+                <input matInput type="number" placeholder="Costo Base S/." [(ngModel)]="plazaSelected.c_minimo" name="c_minimo">
+            </mat-form-field>
+            <mat-form-field>        
+                <input matInput type="number" placeholder="Costo Km Adicional S/." [(ngModel)]="plazaSelected.c_km" name="c_km">
+            </mat-form-field>
+    
+            <br>
+            <div *ngIf="plazaSelected.icons_entrega">
+                <p class="fs-600 fs-18">Iconos a mostrar</p>
+                <div *ngFor="let itemCheck of plazaSelected.icons_entrega">
+                    <mat-checkbox class="example-margin" [checked]="itemCheck.visible" [(ngModel)]="itemCheck.visible">{{ itemCheck.motivo }}</mat-checkbox>
+                </div>
             </div>
-        </div>
-      </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Programar"> 
+          <br>
+          <table>
+            <thead>
+              <th>                    
+                  <mat-select placeholder="Dia" [(ngModel)]="rowProgramacion.dia" name="dia" style="width: 100px;">                    
+                    <mat-option *ngFor="let item of listDays" [value]="item">
+                      {{item.des}}
+                    </mat-option>
+                  </mat-select>                                        
+              </th>
+              <th>
+                <mat-form-field style="width: 100px;" class="text-center">
+                  <input matInput placeholder="Hora 24hr" class="text-center" [(ngModel)]="rowProgramacion.hora" name="hora">
+                </mat-form-field>
+              </th>
+              <th>
+                <mat-form-field style="width: 100px;" class="text-center">
+                  <input type="number" matInput placeholder="Costo" class="text-center" [(ngModel)]="rowProgramacion.costo" name="costo">
+                </mat-form-field>
+              </th>
+              <th>
+                <button class="btn btn-sm btn-success" (click)="addRowProgramacion()">+</button>
+              </th>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of listProgramacion"> 
+                <td>
+                  {{ item.dia.des }}
+                </td>
+                <td align="center">
+                  {{ item.hora }}
+                </td>
+                <td align="center">
+                  {{ item.costo | number: '.2' }}
+                </td>
+                <td>
+                  <span class="fa fa-trash" (click)="quitarRowProgramacion(item)"></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- <button (click)="testChangeCosto()">aaa</button> -->
+
+        </mat-tab>
+      </mat-tab-group>
       
       <hr>
       <div>

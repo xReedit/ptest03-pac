@@ -1,0 +1,73 @@
+<div class="p-5">
+    <h3>Pago del servicio</h3>
+    <p>Depositos pendientes de confirmar</p>
+    <hr>
+    <div>
+        <div>                    
+            <table class="table-model-1 w-100" mat-table [dataSource]="dataConfirmarPagoServicio">
+                <ng-container matColumnDef="#">
+                    <th mat-header-cell *matHeaderCellDef>#</th>
+                    <td mat-cell *matCellDef="let element">
+                        <p class="fw-600"> 
+                            {{ element.idsede_pago_confirmacion}} 
+                        </p>                            
+                        <p>{{ element.fecha}}</p>                                                                
+                    </td>
+                </ng-container>
+                
+                <ng-container matColumnDef="comercio">
+                    <th mat-header-cell *matHeaderCellDef>Local</th>
+                    <td mat-cell *matCellDef="let element">
+                        <p class="fw-600">{{ element.nombre}}</p>
+                        <p>{{ element.ciudad}}</p>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="cuenta">
+                    <th mat-header-cell *matHeaderCellDef>Cuenta Deposito</th>
+                    <td mat-cell *matCellDef="let element">
+                        <p>{{ element.banco}}</p>                                                                         
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="n_operacion">
+                    <th mat-header-cell *matHeaderCellDef width="160px"># Operacion</th>
+                    <td mat-cell *matCellDef="let element">
+                        <p>{{ element.n_operacion}}</p>                                
+                        <p class="text-secondary fs-12">{{ element.comentario}}</p>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="subtotales">
+                    <th mat-header-cell *matHeaderCellDef class="text-right">Detalle</th>
+                    <td mat-cell *matCellDef="let element" align="right">
+                        <div *ngFor="let subtotal of element.data_subtotales">
+                            <p>{{ subtotal.des }}  {{ subtotal.importe }}</p>                                
+                        </div>                        
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="importe_pagado">
+                    <th mat-header-cell *matHeaderCellDef class="text-right">Importe</th>
+                    <td mat-cell *matCellDef="let element" align="right">
+                        <p class="fw-600">{{ element.importe | number : '.2'}}</p>                                                                
+                        <p class="badge badge-secondary" [ngClass]="{'badge-success': element.ispago_tarjeta === 1}">
+                            {{element.tipo_pago}}
+                        </p>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="accion">
+                    <th mat-header-cell *matHeaderCellDef class="text-right">.</th>
+                    <td mat-cell *matCellDef="let element" align="right">                                                        
+                        <button class="p-1" >Confirmar</button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+            <br>
+        </div>
+    </div>
+</div>
