@@ -5,6 +5,7 @@ import { ComercioService } from 'src/app/shared/services/comercio.service';
 import { ListenStatusService } from 'src/app/shared/services/listen-status.service';
 import { CrudHttpService } from 'src/app/shared/services/crud-http.service';
 import { SocketService } from 'src/app/shared/services/socket.service';
+import { TimeLinePedido } from 'src/app/modelos/time.line.pedido';
 
 @Component({
   selector: 'app-comp-orden-detalle',
@@ -219,13 +220,14 @@ export class CompOrdenDetalleComponent implements OnInit {
     };
 
     this.crudService.postFree(_dataSend, 'monitor', 'set-asignar-pedido-manual', true)
-    .subscribe( res => {
+    .subscribe(res => {
       // console.log(res);
       this.orden.nom_repartidor = this.repartidor_selected_manual.nombre;
       this.orden.idrepartidor = this.repartidor_selected_manual.idrepartidor;
       this.orden.telefono_repartidor = this.repartidor_selected_manual.telefono_repartidor;
 
       // emitir socket al rerpatidor para que recargue
+      pedidos_repartidor.socket_repartidor_quitar = res.data[0].socketid;
       this.socketService.emit('set-asigna-pedido-repartidor-manual', pedidos_repartidor);
       this.sendNotificaClienteRepartidor();
     });
@@ -237,6 +239,11 @@ export class CompOrdenDetalleComponent implements OnInit {
     const listClienteNotificar = [];
     // this.listPedidos.filter(p => !p.idrepartidor ).map(p => {
       const rowDatos = this.orden?.json_datos_delivery?.p_header?.arrDatosDelivery;
+
+      let _time_line = this.orden.time_line || new TimeLinePedido()
+      _time_line.hora_acepta_pedido = new Date().getTime()
+
+
       if ( rowDatos ) {
         const rowCliente = {
           nombre: rowDatos.nombre.split(' ')[0],
@@ -244,7 +251,11 @@ export class CompOrdenDetalleComponent implements OnInit {
           establecimiento: rowDatos.establecimiento.nombre,
           idpedido: this.orden.idpedido,
           repartidor_nom: this.repartidor_selected_manual.nombre.split(' ')[0],
-          repartidor_telefono: this.repartidor_selected_manual.telefono_repartidor || this.repartidor_selected_manual.telefono
+          repartidor_telefono: this.repartidor_selected_manual.telefono_repartidor || this.repartidor_selected_manual.telefono,
+          idsede: this.orden.idsede,
+          idorg: this.orden.idorg,
+          time_line: _time_line,
+          repartidor_red: 1 // red papaya
         };
 
         listClienteNotificar.push(rowCliente);

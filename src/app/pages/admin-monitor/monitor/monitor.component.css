@@ -15,3 +15,12 @@ p {
 .bg-row-anulado {
     background: #ffebee;
 }
+
+.border-bottom-t-asignado {
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+}
+
+.table-row-mouse tr:hover {
+    background-color: aliceblue;    
+  }

@@ -6,6 +6,8 @@ import { MatDialogConfig, MatDialog } from '@angular/material/dialog';
 import { DialogPagoSedeComponent } from 'src/app/componentes/dialog-pago-sede/dialog-pago-sede.component';
 import { DialogInfoSedeComponent } from 'src/app/componentes/dialog-info-sede/dialog-info-sede.component';
 import { SocketService } from 'src/app/shared/services/socket.service';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-comercios',
@@ -26,7 +28,9 @@ export class ComerciosComponent implements OnInit {
     private crudService: CrudHttpService,
     private dialog: MatDialog,
     private router: Router,
-    private socketService: SocketService
+    private socketService: SocketService,
+    private clipboard: Clipboard,
+    private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -177,6 +181,15 @@ export class ComerciosComponent implements OnInit {
 
   goPagoServicioConfirmar() {
     this.router.navigate(['./comercio/comercios-cofirmar-pago-servicio']);
+  }
+
+  copyLinkCarta(link: any) {
+    const _link = `https://express.papaya.com.pe/carta/${link.link_carta}`;
+    this.clipboard.copy(_link);
+    this.snackBar.open('Link copiado al portapapeles!', null, {
+      duration: 2000,
+      panelClass: 'snackbar'
+    });
   }
 
 }

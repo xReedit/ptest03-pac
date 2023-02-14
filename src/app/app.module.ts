@@ -14,6 +14,7 @@ import { environment } from '../environments/environment';
 @NgModule({
   declarations: [
     AppComponent,
+    // RepartidorVistaPedidoComponent,
     // DebounceClickDirective
   ],
   imports: [

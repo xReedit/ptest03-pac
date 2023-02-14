@@ -141,4 +141,39 @@ export class FacturacionElectronicaService {
 
   }
 
+  // facturar a comercio despues de confimar pago
+  // idconfirmacion
+  cocinarFacturaComercio(_idconfirmacion: number, _items: any, _substotales: any, _comprobante: TipoComprobanteModel, _cliente: any, sedeEmisor: any) {
+
+    // datos de la sede
+    // const _infoSede = this.comercioService.getSedeInfo();
+    const _infoSede = sedeEmisor;
+
+    // convertir el total en letras
+    const rowTotal = _substotales[_substotales.length - 1 ];
+    const importeLetras = this.numeroLetraService.NumeroALetras(rowTotal.importe);
+    rowTotal.importe_letras = importeLetras;
+
+    const dataSend = {
+      items: _items,
+      subtotales: _substotales,
+      comprobante: _comprobante,
+      cliente: _cliente,
+      sede: _infoSede
+    };
+
+    console.log('dataSend factura', dataSend);
+
+    this.crudService.postFree(dataSend, 'service', 'facturacion-e')
+      .subscribe(res => {
+        console.log(res);
+
+        const _dataSend = { idconfirmacion: _idconfirmacion, external_id: res.data.external_id };
+        this.crudService.postFree(_dataSend, 'monitor', 'set-factura-confirmacion-pago-servicio').subscribe((resp: any) => {
+
+        });
+      });
+
+  }
+
 }

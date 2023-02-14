@@ -5,6 +5,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatDialogConfig, MatDialog } from '@angular/material/dialog';
 import { DialogOrdenDetalleComponent } from 'src/app/componentes/dialog-orden-detalle/dialog-orden-detalle.component';
 import { UtilitariosService } from 'src/app/shared/services/utilitarios.service';
+import { RepartidorVistaPedidoService } from 'src/app/shared/services/repartidor-vista-pedido.service'
 // import { TimetChangeCostoService } from 'src/app/shared/services/timet-change-costo.service';
 
 
@@ -31,13 +32,15 @@ export class MonitorComponent implements OnInit, OnDestroy {
   displayedColumnsPedidos: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor', 'importe', 'min_transcurridos', 'min_avisa' ];
   displayedColumnsPedidosMandados: string[] = ['num_pedido', 'ciudad', 'cliente', 'de', 'a', 'repartidor', 'descripcion', 'importe', 'min_transcurridos'];
 
-  displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'por_aceptar', 'aceptados', 'calificacion', 'efectivo_mano', 'reasignado', 'online', 'ocupado'];
+  displayedColumnsRepartidor: string[] = ['repartidor', 'pedido_a', 'ocupado'];  
   displayedColumnsCliente: string[] = ['idcliente', 'cliente', 'pwa_id', 'f_registro', 'telefono', 'calificacion'];
   displayedColumnsClienteScanQr: string[] = ['#', 'Sede', 'Canal', 'cant_total', 'imp_total'];
   displayedColumnsRetiroCashAtm: string[] = ['#', 'cliente', 'ciudad', 'direccion', 'importe', 'repartidor', 'tiempo'];
 
   isFirstView = true;
   tabIndexSelected = 0; // tab seleccioando
+
+  loaderRepartidores = false
 
   // displayedColumnsPedidosAbona: string[] = ['num_pedido', 'comercio', 'ciudad', 'cliente', 'repartidor'
   // , 'importe', 'importe_debitar', 'c_visa', 'c_igv', 'c_transaccion', 'c_entrega', 'neto_abonar', 'action'
@@ -100,6 +103,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   isShowPedidosExpress = false;
   isShowPedidoRetirosEntregados = false;
+  isShowNotificacionRestobar = false;
 
   dataFiltroAbonar = {
     por: '0', // 0 comercio 1 repartidor
@@ -140,6 +144,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private socketService: SocketService,
     private router: Router,
+    private repartidorVistaPedidoService: RepartidorVistaPedidoService
     // private timechangeService: TimetChangeCostoService
   ) { }
 
@@ -175,21 +180,21 @@ export class MonitorComponent implements OnInit, OnDestroy {
     //   .subscribe(res => {
     //     console.log('onMonitorPedidosPendientes', res);
     //     this.pedidosPendietesPorAtender();
-    //   });
+    //   }); 
 
     // notifica pedido a repartidor a espera que acepte
-    // this.socketService.onMonitorNotificaPedidoRepartidor()
-    //   .subscribe(pedidos => {
-    //     console.log('onMonitorNotificaPedidoRepartidor', pedidos);
-    //     this.refreshRepartidorPedidoPorAceptar(pedidos);
-    //   });
+    this.socketService.onMonitorNotificaPedidoRepartidor()
+      .subscribe(pedidos => {
+        console.log('onMonitorNotificaPedidoRepartidor', pedidos);
+        this.refreshRepartidorPedidoPorAceptar(pedidos);
+      });
 
     // notifica quita pedido repartidor por no acpetar a tiempo
-    // this.socketService.onMonitorQuitaPedidoRepartidor()
-    //   .subscribe(res => {
-    //     console.log('onMonitorQuitaPedidoRepartidor', res);
-    //     this.refreshRepartidorQuitaPedido(res);
-    //   });
+    this.socketService.onMonitorQuitaPedidoRepartidor()
+      .subscribe(res => {
+        console.log('onMonitorQuitaPedidoRepartidor', res);
+        this.refreshRepartidorQuitaPedido(res);
+      });
 
     // notifica repartidor online
     this.socketService.onMonitorRepartidorOnline()
@@ -258,6 +263,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
       const _repartidorPedido = this.dataRepartidores.data.filter(r => r.idrepartidor === res.idrepartidor)[0];
       if ( _repartidorPedido?.pedido_por_aceptar ) {
         _repartidorPedido.pedido_por_aceptar.cantidad_entregados++;
+        this.repartidorVistaPedidoService.updateShowTimeLinePedidoByRepartidor(_repartidorPedido, res.idpedido, null, true);
       }
     });
 
@@ -268,6 +274,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
       if ( _repartidorPedido?.pedido_por_aceptar ) {
         _repartidorPedido.pedido_por_aceptar.cantidad_pedidos_aceptados++;
       }
+      this.repartidorVistaPedidoService.updateShowTimeLinePedidoByRepartidorAsignacionManual(_repartidorPedido, res.pedidos);
     });
 
 
@@ -279,8 +286,24 @@ export class MonitorComponent implements OnInit, OnDestroy {
         _repartidorPedido.pedido_por_aceptar = null;
         _repartidorPedido.r_idpedido = null;
         _repartidorPedido.ocupado = 0;
+        this.repartidorVistaPedidoService.cleanTimeLinePedido(_repartidorPedido)
         // _repartidorPedido.pedido_por_aceptar.cantidad_pedidos_aceptados++;
       }
+    });
+
+    this.socketService.onRepartidorNotificaTimeLinePedido()
+    .subscribe((res: any) => {
+      console.log('===== repartidor-notifica-cliente-time-line =========== ', res);
+      const _repartidorPedido = this.dataRepartidores.data.filter(r => r.idrepartidor === res.repartidor_id)[0];
+      if ( _repartidorPedido ) {
+        this.repartidorVistaPedidoService.updateShowTimeLinePedidoByRepartidor(_repartidorPedido, res.idpedido, res.time_line);
+      }
+    });
+
+    this.socketService.onRestobarNotificaPagoServicio()
+    .subscribe(res => {
+      console.log('===== onRestobarNotificaPagoServicio =========== ', res);
+      this.isShowNotificacionRestobar = true;
     });
 
 
@@ -417,6 +440,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
         this.countPedidosAndroid += p.json_datos_delivery.p_header.systemOS === 'Android' ? 1 : 0;
         this.countPedidosIphone += p.json_datos_delivery.p_header.systemOS === 'iOS' ? 1 : 0;
         this.countPedidosWindos += p.json_datos_delivery.p_header.systemOS === 'Windows' ? 1 : 0;
+
+        this.sendMsjClienteRecoge(p);
       });
 
       // this.dataPedidos.paginator = this.paginator;
@@ -480,15 +505,22 @@ export class MonitorComponent implements OnInit, OnDestroy {
   }
 
   loadRepartidores(alIniciar = true ) {
+    this.loaderRepartidores = true;
     this.crudService.getAll('monitor', 'get-repartidores', false, false, true)
     .subscribe((res: any) => {
-      console.log(res);
+      console.log('get-repartidores', res);
       this.dataRepartidores.data = res.data;
       this.dataRepartidores.paginator = this.paginatorRepartidor;
+
+      this.repartidorVistaPedidoService.updateShowTimeLinePedidoAllRepartidores(this.dataRepartidores.data)
 
       if ( alIniciar ) {
         this.pedidosPendietesPorAtender();
       }
+
+      setTimeout(() => {
+        this.loaderRepartidores = false;
+      }, 1500);
     });
   }
 
@@ -559,6 +591,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
       res.data
       .map(p => {
         p.json_datos_delivery = JSON.parse(p.json_datos_delivery);
+
         const _row = {
           sede: p.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.nombre,
           pedido: p.idpedido,
@@ -570,7 +603,26 @@ export class MonitorComponent implements OnInit, OnDestroy {
         this.listPedidosPendientes.push(_row);
       });
 
+      console.log('listPedidosPendientes', this.listPedidosPendientes);
     });
+  }
+
+  private sendMsjClienteRecoge(p: any) {
+    const isRecogeCliente = p.cliente_pasa_recoger === 'false' ? false : true;
+    const isRepartidorAsignado = p.idrepartidor;
+    if ( isRecogeCliente && !isRepartidorAsignado) {
+      const _sendServerMsj = {
+        idpedido: p.idpedido,
+        tipo: 4,
+        nombre: p.nom_cliente,
+        telefono: p.json_datos_delivery.p_header.arrDatosDelivery.telefono,
+        establecimiento: p.json_datos_delivery.p_header.arrDatosDelivery.establecimiento.nombre,
+        tiempo_entrega: p.tiempo_aprox_entrega
+      };
+
+      this.socketService.emit('set-monitor-pedido-recoger', _sendServerMsj);
+      return;
+    }
   }
 
 
@@ -600,6 +652,17 @@ export class MonitorComponent implements OnInit, OnDestroy {
       repartidor.pedido_por_aceptar = null;
       repartidor._flag_paso_pedido = 0;
     });
+  }
+
+  verPedidoById(id: number) {
+    const _dataSend = { idpedido: id }; 
+    this.crudService.postFree(_dataSend, 'monitor', 'get-pedido-by-id')
+    .subscribe(res => {
+      console.log('res', res);
+      const response = res.data[0];
+      response.json_datos_delivery = JSON.parse(response.json_datos_delivery);
+      this.verPedido(response);
+    })
   }
 
   verPedido(orden: any) {
@@ -955,6 +1018,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
     _repartidor.r_idpedido = _pedidoInList.pedido;
     _repartidor.flag_paso_pedido = _pedidoInList.pedido;
     _repartidor.t_transcurrido = _pedidoInList.min_transcurridos;
+    _repartidor.pedidos_reasignados =  pedido[0].pedidos_reasignados;
   }
 
   private refreshRepartidorQuitaPedido( idrepartidor ) {
@@ -1024,6 +1088,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   goPagoServicioConfirmar() {
     this.router.navigate(['./comercio/comercios-cofirmar-pago-servicio']);
+    this.isShowNotificacionRestobar = false;
   }
 
 }

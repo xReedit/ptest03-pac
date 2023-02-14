@@ -119,7 +119,7 @@ export class ComercioResumenPagoComponent implements OnInit {
         importePropina = importePropina ? parseFloat(importePropina.importe) : 0;
 
         importeEntrega = _sutotales.filter(s => s.id === -2)[0];
-        importeEntrega = importeEntrega ? parseFloat(importeEntrega.importe) : p.json_datos_delivery.p_header.arrDatosDelivery.costoTotalDelivery;
+        importeEntrega = importeEntrega ? parseFloat(importeEntrega.importe) : p.json_datos_delivery.p_header.arrDatosDelivery.costoTotalDelivery || 0;
 
         importeTotal = parseFloat(_sutotales[_sutotales.length - 1]. importe);
 

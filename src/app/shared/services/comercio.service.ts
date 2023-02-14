@@ -22,7 +22,7 @@ export class ComercioService {
     localStorage.setItem(this.keyLocal, btoa(JSON.stringify(_sedeInfo)));
   }
 
-  getSedeInfo(): SedeInfoModel {
+    getSedeInfo(): SedeInfoModel {
     const _sedeInfo = localStorage.getItem(this.keyLocal);
     this.sedeInfo = _sedeInfo ? JSON.parse(atob(_sedeInfo)) : new SedeInfoModel;
     return this.sedeInfo;

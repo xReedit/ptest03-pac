@@ -290,6 +290,17 @@ export class SocketService {
     });
   }
 
+  onRepartidorNotificaTimeLinePedido() {
+    return new Observable(observer => {
+      this.socket.on('repartidor-notifica-cliente-time-line', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
+
+  
+
 
 
 
@@ -404,6 +415,15 @@ export class SocketService {
   onMonitorNotificaImpresionComanda() {
     return new Observable(observer => {
       this.socket.on('notifica-impresion-comanda', (res: any) => {
+        observer.next(res);
+      });
+    });
+  }
+
+
+  onRestobarNotificaPagoServicio() {
+    return new Observable(observer => {
+      this.socket.on('restobar-pago-servicio-on', (res: any) => {
         observer.next(res);
       });
     });
